@@ -13,31 +13,51 @@ public static class DbInitializer
         try
         {
             var rawUsers = context.Database.GetCollection<BsonDocument>("Users");
-            await rawUsers.UpdateManyAsync(
-                new BsonDocument("DepartmentId", new BsonDocument("$type", "objectId")),
-                new[] { new BsonDocument("$set", new BsonDocument("DepartmentId", new BsonDocument("$toString", "$DepartmentId"))) });
+            var usersWithObjDept = await rawUsers.Find(Builders<BsonDocument>.Filter.Type("DepartmentId", BsonType.ObjectId)).ToListAsync();
+            foreach (var doc in usersWithObjDept)
+            {
+                await rawUsers.UpdateOneAsync(
+                    Builders<BsonDocument>.Filter.Eq("_id", doc["_id"]),
+                    Builders<BsonDocument>.Update.Set("DepartmentId", doc["DepartmentId"].ToString()));
+            }
 
             var rawComplaints = context.Database.GetCollection<BsonDocument>("Complaints");
-            await rawComplaints.UpdateManyAsync(
-                new BsonDocument("DepartmentId", new BsonDocument("$type", "objectId")),
-                new[] { new BsonDocument("$set", new BsonDocument("DepartmentId", new BsonDocument("$toString", "$DepartmentId"))) });
-            await rawComplaints.UpdateManyAsync(
-                new BsonDocument("UserId", new BsonDocument("$type", "objectId")),
-                new[] { new BsonDocument("$set", new BsonDocument("UserId", new BsonDocument("$toString", "$UserId"))) });
+            var complaintsWithObjDept = await rawComplaints.Find(Builders<BsonDocument>.Filter.Type("DepartmentId", BsonType.ObjectId)).ToListAsync();
+            foreach (var doc in complaintsWithObjDept)
+            {
+                await rawComplaints.UpdateOneAsync(
+                    Builders<BsonDocument>.Filter.Eq("_id", doc["_id"]),
+                    Builders<BsonDocument>.Update.Set("DepartmentId", doc["DepartmentId"].ToString()));
+            }
+            var complaintsWithObjUser = await rawComplaints.Find(Builders<BsonDocument>.Filter.Type("UserId", BsonType.ObjectId)).ToListAsync();
+            foreach (var doc in complaintsWithObjUser)
+            {
+                await rawComplaints.UpdateOneAsync(
+                    Builders<BsonDocument>.Filter.Eq("_id", doc["_id"]),
+                    Builders<BsonDocument>.Update.Set("UserId", doc["UserId"].ToString()));
+            }
 
             var rawRequests = context.Database.GetCollection<BsonDocument>("ServiceRequests");
-            await rawRequests.UpdateManyAsync(
-                new BsonDocument("UserId", new BsonDocument("$type", "objectId")),
-                new[] { new BsonDocument("$set", new BsonDocument("UserId", new BsonDocument("$toString", "$UserId"))) });
+            var requestsWithObjUser = await rawRequests.Find(Builders<BsonDocument>.Filter.Type("UserId", BsonType.ObjectId)).ToListAsync();
+            foreach (var doc in requestsWithObjUser)
+            {
+                await rawRequests.UpdateOneAsync(
+                    Builders<BsonDocument>.Filter.Eq("_id", doc["_id"]),
+                    Builders<BsonDocument>.Update.Set("UserId", doc["UserId"].ToString()));
+            }
 
             var rawNotifs = context.Database.GetCollection<BsonDocument>("Notifications");
-            await rawNotifs.UpdateManyAsync(
-                new BsonDocument("UserId", new BsonDocument("$type", "objectId")),
-                new[] { new BsonDocument("$set", new BsonDocument("UserId", new BsonDocument("$toString", "$UserId"))) });
+            var notifsWithObjUser = await rawNotifs.Find(Builders<BsonDocument>.Filter.Type("UserId", BsonType.ObjectId)).ToListAsync();
+            foreach (var doc in notifsWithObjUser)
+            {
+                await rawNotifs.UpdateOneAsync(
+                    Builders<BsonDocument>.Filter.Eq("_id", doc["_id"]),
+                    Builders<BsonDocument>.Update.Set("UserId", doc["UserId"].ToString()));
+            }
         }
         catch
         {
-            // Ignore if pipeline updates not supported in older MongoDB versions
+            // Ignore if normalization not required
         }
 
         try
