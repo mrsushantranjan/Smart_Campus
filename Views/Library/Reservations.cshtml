@@ -1,0 +1,94 @@
+@model List<ReservationResponseDto>
+@{
+    ViewData["Title"] = "All Library Reservations";
+    var statusFilter = ViewBag.StatusFilter as string;
+}
+
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <h2 class="fw-bold text-dark mb-1">Circulation &amp; Active Reservations</h2>
+        <p class="text-muted small mb-0">Overview of student book checkouts and inventory reservations</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Index" class="btn btn-sm btn-outline-secondary px-3">
+            <i class="bi bi-book me-1"></i> Catalog
+        </a>
+        <a asp-action="CreateBook" class="btn btn-sm btn-primary px-3 shadow-sm">
+            <i class="bi bi-plus-lg me-1"></i> Add Book
+        </a>
+    </div>
+</div>
+
+<!-- Filters Bar -->
+<div class="sc-card p-3 mb-4">
+    <div class="d-flex align-items-center gap-2">
+        <span class="small fw-semibold text-muted">Filter Status:</span>
+        <div class="btn-group btn-group-sm">
+            <a asp-action="Reservations" class="btn @(string.IsNullOrEmpty(statusFilter) ? "btn-dark" : "btn-outline-secondary")">All</a>
+            <a asp-action="Reservations" asp-route-status="@ReservationStatuses.Active" class="btn @(statusFilter == ReservationStatuses.Active ? "btn-dark" : "btn-outline-secondary")">Active</a>
+            <a asp-action="Reservations" asp-route-status="@ReservationStatuses.Fulfilled" class="btn @(statusFilter == ReservationStatuses.Fulfilled ? "btn-dark" : "btn-outline-secondary")">Fulfilled</a>
+            <a asp-action="Reservations" asp-route-status="@ReservationStatuses.Cancelled" class="btn @(statusFilter == ReservationStatuses.Cancelled ? "btn-dark" : "btn-outline-secondary")">Cancelled</a>
+        </div>
+    </div>
+</div>
+
+<div class="sc-card">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light small text-uppercase text-muted">
+                <tr>
+                    <th>Student</th>
+                    <th>Book</th>
+                    <th>Category</th>
+                    <th>Reserved On</th>
+                    <th>Status</th>
+                    <th class="text-end">Action</th>
+                </tr>
+            </thead>
+            <tbody class="small">
+                @if (Model.Any())
+                {
+                    @foreach (var r in Model)
+                    {
+                        <tr>
+                            <td>
+                                <div class="fw-semibold text-dark">@(r.UserName ?? "Student")</div>
+                                <code class="text-muted" style="font-size: 0.72rem;">@r.UserId</code>
+                            </td>
+                            <td>
+                                <div class="fw-bold text-dark">@r.BookTitle</div>
+                                <div class="text-muted" style="font-size: 0.75rem;">@r.Author</div>
+                            </td>
+                            <td><span class="badge bg-light text-dark border">@r.Category</span></td>
+                            <td class="text-muted">@r.ReservationDate.ToString("MMM dd, yyyy HH:mm")</td>
+                            <td>@Html.Raw(PortalBadgeHelper.RenderBadge(r.Status))</td>
+                            <td class="text-end">
+                                @if (r.Status == ReservationStatuses.Active)
+                                {
+                                    <form asp-action="CancelReservation" asp-route-id="@r.Id" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="returnAction" value="Reservations" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Cancel this reservation and release the copy?');">
+                                            Cancel / Return
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">&mdash;</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted">No reservations on file.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+

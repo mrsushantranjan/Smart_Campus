@@ -1,0 +1,210 @@
+@model ReportsViewModel
+@{
+    ViewData["Title"] = "Reports & Analytics";
+}
+
+<!-- Header -->
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <h2 class="fw-bold text-dark mb-1">Campus Analytics &amp; Reports</h2>
+        <p class="text-muted small mb-0">Live aggregated statistics computed directly from MongoDB collections</p>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-sm btn-outline-secondary" onclick="window.print();">
+            <i class="bi bi-printer me-1"></i> Print / Export PDF
+        </button>
+    </div>
+</div>
+
+<!-- Quick Stat Strip -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="sc-stat-card">
+            <div class="stat-info">
+                <span class="stat-label">Total Complaints Logged</span>
+                <span class="stat-value text-primary">@Model.TotalComplaints</span>
+            </div>
+            <div class="stat-icon bg-primary-subtle text-primary">
+                <i class="bi bi-shield-exclamation"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="sc-stat-card">
+            <div class="stat-info">
+                <span class="stat-label">Total Service Requests</span>
+                <span class="stat-value text-success">@Model.TotalRequests</span>
+            </div>
+            <div class="stat-icon bg-success-subtle text-success">
+                <i class="bi bi-file-earmark-check"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="sc-stat-card">
+            <div class="stat-info">
+                <span class="stat-label">Total Book Reservations</span>
+                <span class="stat-value text-info">@Model.TotalReservations</span>
+            </div>
+            <div class="stat-icon bg-info-subtle text-info">
+                <i class="bi bi-journal-bookmark"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Grid -->
+<div class="row g-4 mb-4">
+    <!-- Chart 1: Department-Wise Complaints -->
+    <div class="col-lg-6">
+        <div class="sc-card h-100">
+            <div class="sc-card-header">
+                <h5 class="sc-card-title"><i class="bi bi-bar-chart-fill text-primary me-2"></i>Department-Wise Complaints</h5>
+            </div>
+            <div class="sc-card-body">
+                <canvas id="deptChart" height="240"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart 2: Complaint Status Distribution (Pending vs Resolved) -->
+    <div class="col-lg-6">
+        <div class="sc-card h-100">
+            <div class="sc-card-header">
+                <h5 class="sc-card-title"><i class="bi bi-pie-chart-fill text-primary me-2"></i>Complaint Status Breakdown</h5>
+            </div>
+            <div class="sc-card-body d-flex justify-content-center align-items-center">
+                <div style="max-width: 320px; width: 100%;">
+                    <canvas id="statusChart" height="240"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart 3: Monthly Complaint Trends -->
+    <div class="col-lg-6">
+        <div class="sc-card h-100">
+            <div class="sc-card-header">
+                <h5 class="sc-card-title"><i class="bi bi-graph-up text-primary me-2"></i>Monthly Complaint Trends</h5>
+            </div>
+            <div class="sc-card-body">
+                <canvas id="monthlyChart" height="240"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart 4: Service Request Distribution -->
+    <div class="col-lg-6">
+        <div class="sc-card h-100">
+            <div class="sc-card-header">
+                <h5 class="sc-card-title"><i class="bi bi-check2-circle text-primary me-2"></i>Service Requests by Status</h5>
+            </div>
+            <div class="sc-card-body d-flex justify-content-center align-items-center">
+                <div style="max-width: 320px; width: 100%;">
+                    <canvas id="requestStatusChart" height="240"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Department Complaints Chart
+        const deptLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.DepartmentComplaints.Select(d => d.DepartmentName)));
+        const deptCounts = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.DepartmentComplaints.Select(d => d.Count)));
+        new Chart(document.getElementById('deptChart'), {
+            type: 'bar',
+            data: {
+                labels: deptLabels.length ? deptLabels : ['General'],
+                datasets: [{
+                    label: 'Complaints',
+                    data: deptCounts.length ? deptCounts : [0],
+                    backgroundColor: '#2563eb',
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, ticks: { precision: 0 } }
+                },
+                plugins: { legend: { display: false } }
+            }
+        });
+
+        // Complaint Status Breakdown Chart
+        const statusLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ComplaintStatuses.Select(s => s.Status)));
+        const statusCounts = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ComplaintStatuses.Select(s => s.Count)));
+        new Chart(document.getElementById('statusChart'), {
+            type: 'doughnut',
+            data: {
+                labels: statusLabels.length ? statusLabels : ['None'],
+                datasets: [{
+                    data: statusCounts.length ? statusCounts : [1],
+                    backgroundColor: ['#eab308', '#3b82f6', '#6366f1', '#22c55e', '#ef4444'],
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+
+        // Monthly Trends Line Chart
+        const monthLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.MonthlyComplaints.Select(m => m.Month)));
+        const monthCounts = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.MonthlyComplaints.Select(m => m.Count)));
+        new Chart(document.getElementById('monthlyChart'), {
+            type: 'line',
+            data: {
+                labels: monthLabels.length ? monthLabels : ['Jan', 'Feb', 'Mar'],
+                datasets: [{
+                    label: 'Monthly Submissions',
+                    data: monthCounts.length ? monthCounts : [0, 0, 0],
+                    fill: true,
+                    borderColor: '#0f172a',
+                    backgroundColor: 'rgba(15, 23, 42, 0.05)',
+                    tension: 0.3,
+                    pointBackgroundColor: '#2563eb'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, ticks: { precision: 0 } }
+                }
+            }
+        });
+
+        // Service Request Status Breakdown
+        const reqLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ServiceRequestStatuses.Select(s => s.Status)));
+        const reqCounts = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.ServiceRequestStatuses.Select(s => s.Count)));
+        new Chart(document.getElementById('requestStatusChart'), {
+            type: 'pie',
+            data: {
+                labels: reqLabels.length ? reqLabels : ['None'],
+                datasets: [{
+                    data: reqCounts.length ? reqCounts : [1],
+                    backgroundColor: ['#eab308', '#22c55e', '#ef4444'],
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+    </script>
+}
+

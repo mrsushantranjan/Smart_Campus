@@ -1,0 +1,101 @@
+@model List<NotificationResponseDto>
+@{
+    ViewData["Title"] = "Notifications";
+    var unreadCount = Model.Count(n => !n.IsRead);
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+            <div>
+                <h2 class="fw-bold text-dark mb-1">In-App Notifications</h2>
+                <p class="text-muted small mb-0">Updates on complaints, service request decisions, and campus announcements</p>
+            </div>
+            @if (unreadCount > 0)
+            {
+                <form asp-action="MarkAllAsRead" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-sm btn-outline-primary px-3 shadow-sm">
+                        <i class="bi bi-check2-all me-1"></i> Mark All as Read
+                    </button>
+                </form>
+            }
+        </div>
+
+        <div class="sc-card">
+            @if (Model.Any())
+            {
+                <div class="list-group list-group-flush">
+                    @foreach (var n in Model)
+                    {
+                        <div class="list-group-item p-3 @(!n.IsRead ? "bg-light border-start border-3 border-primary" : "")">
+                            <div class="d-flex justify-content-between align-items-start gap-3">
+                                <div class="d-flex align-items-start gap-3">
+                                    <div class="rounded-circle p-2 @(!n.IsRead ? "bg-primary text-white" : "bg-light text-muted")">
+                                        <i class="bi bi-bell-fill" style="font-size: 0.9rem;"></i>
+                                    </div>
+                                    <div>
+                                        <div class="d-flex align-items-center gap-2 mb-1">
+                                            <h6 class="fw-bold text-dark mb-0">@n.Title</h6>
+                                            @if (!n.IsRead)
+                                            {
+                                                <span class="badge bg-primary-subtle text-primary" style="font-size: 0.65rem;">New</span>
+                                            }
+                                        </div>
+                                        <p class="text-secondary small mb-1">@n.Message</p>
+                                        <span class="text-muted" style="font-size: 0.72rem;">
+                                            <i class="bi bi-clock me-1"></i>@n.CreatedAt.ToString("MMM dd, yyyy HH:mm")
+                                        </span>
+                                    </div>
+                                </div>
+                                @if (!n.IsRead)
+                                {
+                                    <button type="button" class="btn btn-sm btn-link text-muted p-0 small mark-read-btn" data-id="@n.Id" title="Mark as read">
+                                        <i class="bi bi-check2"></i>
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="p-5 text-center text-muted">
+                    <i class="bi bi-bell-slash fs-1 d-block mb-2 text-secondary"></i>
+                    <h5>No Notifications</h5>
+                    <p class="small mb-0">You're completely caught up! We will alert you when there are updates.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    document.querySelectorAll('.mark-read-btn').forEach(btn => {
+        btn.addEventListener('click', async function(e) {
+            e.preventDefault();
+            const id = this.dataset.id;
+            const item = this.closest('.list-group-item');
+            try {
+                const res = await fetch('/api/notifications/' + id + '/read', { method: 'PATCH' });
+                if (res.ok) {
+                    if (item) {
+                        item.classList.remove('bg-light', 'border-start', 'border-3', 'border-primary');
+                        const badge = item.querySelector('.badge');
+                        if (badge) badge.remove();
+                        this.remove();
+                    }
+                    if (typeof fetchUnreadNotifications === 'function') {
+                        fetchUnreadNotifications();
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        });
+    });
+</script>
+}
+

@@ -1,0 +1,134 @@
+@using System.Security.Claims
+@model List<ServiceRequestResponseDto>
+@{
+    ViewData["Title"] = "Service Requests";
+    var statusFilter = ViewBag.StatusFilter as string;
+    var typeFilter = ViewBag.TypeFilter as string;
+    var isAdmin = User.IsInRole(UserRoles.Admin);
+}
+
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <h2 class="fw-bold text-dark mb-1">
+            @(isAdmin ? "Campus Service Requests Directory" : "My Service Requests")
+        </h2>
+        <p class="text-muted small mb-0">Official requests for Bonafide Certificates, Student ID Cards, Hostel, and Tech Support</p>
+    </div>
+    @if (!isAdmin)
+    {
+        <div class="d-flex gap-2">
+            <a asp-action="Create" class="btn btn-sm btn-primary px-3 shadow-sm">
+                <i class="bi bi-plus-lg me-1"></i> New Service Request
+            </a>
+        </div>
+    }
+</div>
+
+<!-- Filters Bar -->
+<div class="sc-card p-3 mb-4">
+    <form method="get" asp-action="Index" class="row g-2 align-items-center">
+        <div class="col-sm-4">
+            <select name="requestType" class="form-select form-select-sm" onchange="this.form.submit()">
+                <option value="">-- All Request Types --</option>
+                <option value="@ServiceRequestTypes.IdCard" selected="@(typeFilter == ServiceRequestTypes.IdCard)">ID Card</option>
+                <option value="@ServiceRequestTypes.BonafideCertificate" selected="@(typeFilter == ServiceRequestTypes.BonafideCertificate)">Bonafide Certificate</option>
+                <option value="@ServiceRequestTypes.Hostel" selected="@(typeFilter == ServiceRequestTypes.Hostel)">Hostel Accommodation</option>
+                <option value="@ServiceRequestTypes.Transportation" selected="@(typeFilter == ServiceRequestTypes.Transportation)">Transportation Pass</option>
+                <option value="@ServiceRequestTypes.TechnicalSupport" selected="@(typeFilter == ServiceRequestTypes.TechnicalSupport)">Technical Support</option>
+                <option value="@ServiceRequestTypes.Other" selected="@(typeFilter == ServiceRequestTypes.Other)">Other Request</option>
+            </select>
+        </div>
+        <div class="col-sm-4">
+            <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                <option value="">-- All Statuses --</option>
+                <option value="@ServiceRequestStatuses.Pending" selected="@(statusFilter == ServiceRequestStatuses.Pending)">Pending</option>
+                <option value="@ServiceRequestStatuses.Approved" selected="@(statusFilter == ServiceRequestStatuses.Approved)">Approved</option>
+                <option value="@ServiceRequestStatuses.Rejected" selected="@(statusFilter == ServiceRequestStatuses.Rejected)">Rejected</option>
+            </select>
+        </div>
+        <div class="col-sm-4 d-flex gap-1">
+            <button type="submit" class="btn btn-sm btn-dark w-100">Filter</button>
+            @if (!string.IsNullOrEmpty(statusFilter) || !string.IsNullOrEmpty(typeFilter))
+            {
+                <a asp-action="Index" class="btn btn-sm btn-outline-secondary">Reset</a>
+            }
+        </div>
+    </form>
+</div>
+
+<!-- Requests Table -->
+<div class="sc-card">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light small text-uppercase text-muted">
+                <tr>
+                    <th>Type &amp; Subject</th>
+                    @if (isAdmin)
+                    {
+                        <th>Requester</th>
+                    }
+                    <th>Description</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th class="text-end">Action</th>
+                </tr>
+            </thead>
+            <tbody class="small">
+                @if (Model.Any())
+                {
+                    @foreach (var r in Model)
+                    {
+                        <tr>
+                            <td>
+                                <div class="fw-bold text-dark">@r.Title</div>
+                                <span class="badge bg-light text-dark border" style="font-size: 0.7rem;">@r.RequestType</span>
+                            </td>
+                            @if (isAdmin)
+                            {
+                                <td>
+                                    <div class="fw-semibold text-dark">@(r.UserName ?? "User")</div>
+                                    <code class="text-muted" style="font-size: 0.72rem;">@r.UserId</code>
+                                </td>
+                            }
+                            <td>
+                                <div class="text-muted text-truncate" style="max-width: 250px;">@r.Description</div>
+                                @if (!string.IsNullOrEmpty(r.AdminRemarks))
+                                {
+                                    <div class="text-secondary small fst-italic" style="font-size: 0.72rem;">
+                                        <strong>Admin:</strong> @r.AdminRemarks
+                                    </div>
+                                }
+                            </td>
+                            <td>@Html.Raw(PortalBadgeHelper.RenderBadge(r.Status))</td>
+                            <td class="text-muted">@r.CreatedAt.ToString("MMM dd, yyyy")</td>
+                            <td class="text-end">
+                                <a asp-action="Details" asp-route-id="@r.Id" class="btn btn-sm btn-outline-primary me-1">
+                                    @(isAdmin ? "Review" : "View")
+                                </a>
+                                @if (isAdmin)
+                                {
+                                    <form asp-action="Delete" asp-route-id="@r.Id" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this service request document?');">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="@(isAdmin ? 6 : 5)" class="text-center py-5 text-muted">
+                            <i class="bi bi-file-earmark-x fs-2 d-block mb-2 text-secondary"></i>
+                            No service requests found.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+

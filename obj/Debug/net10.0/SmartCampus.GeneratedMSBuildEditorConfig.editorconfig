@@ -1,0 +1,164 @@
+is_global = true
+build_property.TargetFramework = net10.0
+build_property.TargetFrameworkIdentifier = .NETCoreApp
+build_property.TargetFrameworkVersion = v10.0
+build_property.TargetPlatformMinVersion = 
+build_property.UsingMicrosoftNETSdkWeb = true
+build_property.ProjectTypeGuids = 
+build_property.InvariantGlobalization = 
+build_property.PlatformNeutralAssembly = 
+build_property.EnforceExtendedAnalyzerRules = 
+build_property.EntryPointFilePath = 
+build_property._SupportedPlatformList = Linux,macOS,Windows
+build_property.RootNamespace = SmartCampus
+build_property.RootNamespace = SmartCampus
+build_property.ProjectDir = /Users/sushantpathak/Downloads/SEM 5/DNET/SmartCampus/
+build_property.EnableComHosting = 
+build_property.EnableGeneratedComInterfaceComImportInterop = 
+build_property.RazorLangVersion = 10.0
+build_property.SupportLocalizedComponentNames = 
+build_property.GenerateRazorMetadataSourceChecksumAttributes = 
+build_property.MSBuildProjectDirectory = /Users/sushantpathak/Downloads/SEM 5/DNET/SmartCampus
+build_property._RazorSourceGeneratorDebug = 
+build_property.EffectiveAnalysisLevelStyle = 10.0
+build_property.EnableCodeStyleSeverity = 
+
+[/Users/sushantpathak/Downloads/SEM 5/DNET/SmartCampus/Views/Account/AccessDenied.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQWNjb3VudC9BY2Nlc3NEZW5pZWQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/sushantpathak/Downloads/SEM 5/DNET/SmartCampus/Views/Account/Login.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQWNjb3VudC9Mb2dpbi5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/sushantpathak/Downloads/SEM 5/DNET/SmartCampus/Views/Account/Profile.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQWNjb3VudC9Qcm9maWxlLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/sushantpathak/Downloads/SEM 5/DNET/SmartCampus/Views/Account/Register.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQWNjb3VudC9SZWdpc3Rlci5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/sushantpathak/Downloads/SEM 5/DNET/SmartCampus/Views/Admin/Departments.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQWRtaW4vRGVwYXJ0bWVudHMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/sushantpathak/Downloads/SEM 5/DNET/SmartCampus/Views/Admin/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQWRtaW4vSW5kZXguY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/sushantpathak/Downloads/SEM 5/DNET/SmartCampus/Views/Admin/Reports.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQWRtaW4vUmVwb3J0cy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/sushantpathak/Downloads/SEM 5/DNET/SmartCampus/Views/Admin/Users.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQWRtaW4vVXNlcnMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/sushantpathak/Downloads/SEM 5/DNET/SmartCampus/Views/Announcements/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQW5ub3VuY2VtZW50cy9DcmVhdGUuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/sushantpathak/Downloads/SEM 5/DNET/SmartCampus/Views/Announcements/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQW5ub3VuY2VtZW50cy9EZXRhaWxzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/sushantpathak/Downloads/SEM 5/DNET/SmartCampus/Views/Announcements/Edit.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQW5ub3VuY2VtZW50cy9FZGl0LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/sushantpathak/Downloads/SEM 5/DNET/SmartCampus/Views/Announcements/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQW5ub3VuY2VtZW50cy9JbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/sushantpathak/Downloads/SEM 5/DNET/SmartCampus/Views/Complaints/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQ29tcGxhaW50cy9DcmVhdGUuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/sushantpathak/Downloads/SEM 5/DNET/SmartCampus/Views/Complaints/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQ29tcGxhaW50cy9EZXRhaWxzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/sushantpathak/Downloads/SEM 5/DNET/SmartCampus/Views/Complaints/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvQ29tcGxhaW50cy9JbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/sushantpathak/Downloads/SEM 5/DNET/SmartCampus/Views/Faculty/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvRmFjdWx0eS9JbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/sushantpathak/Downloads/SEM 5/DNET/SmartCampus/Views/Home/ApiDocs.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvSG9tZS9BcGlEb2NzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/sushantpathak/Downloads/SEM 5/DNET/SmartCampus/Views/Home/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvSG9tZS9JbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/sushantpathak/Downloads/SEM 5/DNET/SmartCampus/Views/Home/Privacy.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvSG9tZS9Qcml2YWN5LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/sushantpathak/Downloads/SEM 5/DNET/SmartCampus/Views/Library/CreateBook.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvTGlicmFyeS9DcmVhdGVCb29rLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/sushantpathak/Downloads/SEM 5/DNET/SmartCampus/Views/Library/EditBook.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvTGlicmFyeS9FZGl0Qm9vay5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/sushantpathak/Downloads/SEM 5/DNET/SmartCampus/Views/Library/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvTGlicmFyeS9JbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/sushantpathak/Downloads/SEM 5/DNET/SmartCampus/Views/Library/MyReservations.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvTGlicmFyeS9NeVJlc2VydmF0aW9ucy5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/sushantpathak/Downloads/SEM 5/DNET/SmartCampus/Views/Library/Reservations.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvTGlicmFyeS9SZXNlcnZhdGlvbnMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/sushantpathak/Downloads/SEM 5/DNET/SmartCampus/Views/Notifications/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvTm90aWZpY2F0aW9ucy9JbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/sushantpathak/Downloads/SEM 5/DNET/SmartCampus/Views/ServiceRequests/Create.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2VydmljZVJlcXVlc3RzL0NyZWF0ZS5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/sushantpathak/Downloads/SEM 5/DNET/SmartCampus/Views/ServiceRequests/Details.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2VydmljZVJlcXVlc3RzL0RldGFpbHMuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/sushantpathak/Downloads/SEM 5/DNET/SmartCampus/Views/ServiceRequests/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2VydmljZVJlcXVlc3RzL0luZGV4LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/sushantpathak/Downloads/SEM 5/DNET/SmartCampus/Views/Shared/Error.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2hhcmVkL0Vycm9yLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/sushantpathak/Downloads/SEM 5/DNET/SmartCampus/Views/Shared/_AuthLayout.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2hhcmVkL19BdXRoTGF5b3V0LmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/sushantpathak/Downloads/SEM 5/DNET/SmartCampus/Views/Shared/_ValidationScriptsPartial.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2hhcmVkL19WYWxpZGF0aW9uU2NyaXB0c1BhcnRpYWwuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/sushantpathak/Downloads/SEM 5/DNET/SmartCampus/Views/Student/Index.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU3R1ZGVudC9JbmRleC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/sushantpathak/Downloads/SEM 5/DNET/SmartCampus/Views/_ViewImports.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvX1ZpZXdJbXBvcnRzLmNzaHRtbA==
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/sushantpathak/Downloads/SEM 5/DNET/SmartCampus/Views/_ViewStart.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvX1ZpZXdTdGFydC5jc2h0bWw=
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/sushantpathak/Downloads/SEM 5/DNET/SmartCampus/Views/Shared/_Layout.cshtml]
+build_metadata.AdditionalFiles.TargetPath = Vmlld3MvU2hhcmVkL19MYXlvdXQuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = b-tzfnadfl02

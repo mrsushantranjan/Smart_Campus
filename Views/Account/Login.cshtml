@@ -1,0 +1,87 @@
+@model LoginRequestDto
+@{
+    Layout = "_AuthLayout";
+    ViewData["Title"] = "Sign In";
+    var returnUrl = ViewData["ReturnUrl"] as string;
+}
+
+<!-- Login Card -->
+<div class="sc-card p-4 shadow-sm">
+    <div class="mb-3 text-center">
+        <h4 class="fw-bold text-dark mb-1">Sign In</h4>
+        <p class="text-muted small">Enter your campus credentials to access the portal</p>
+    </div>
+
+    <form asp-controller="Account" asp-action="Login" asp-route-returnUrl="@returnUrl" method="post">
+        @Html.AntiForgeryToken()
+
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small mb-3"></div>
+
+        <div class="mb-3">
+            <label asp-for="Email" class="form-label small fw-semibold text-secondary">Campus Email</label>
+            <div class="input-group">
+                <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-envelope"></i></span>
+                <input asp-for="Email" class="form-control border-start-0" id="loginEmail" placeholder="e.g. student@smartcampus.edu" required autofocus />
+            </div>
+            <span asp-validation-for="Email" class="text-danger small"></span>
+        </div>
+
+        <div class="mb-3">
+            <label asp-for="Password" class="form-label small fw-semibold text-secondary">Password</label>
+            <div class="input-group">
+                <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-lock"></i></span>
+                <input asp-for="Password" type="password" class="form-control border-start-0" id="loginPassword" placeholder="••••••••" required />
+            </div>
+            <span asp-validation-for="Password" class="text-danger small"></span>
+        </div>
+
+        <div class="mb-3 form-check">
+            <input asp-for="RememberMe" class="form-check-input" />
+            <label asp-for="RememberMe" class="form-check-label small text-secondary">Remember me on this browser</label>
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100 py-2 fw-medium shadow-sm mb-3">
+            Sign In &rarr;
+        </button>
+    </form>
+
+    <div class="text-center pt-2 border-top">
+        <span class="small text-muted">Don't have an account? </span>
+        <a asp-controller="Account" asp-action="Register" class="small fw-semibold text-decoration-none">Create an account</a>
+    </div>
+</div>
+
+<!-- Quick Demo Credentials Box -->
+<div class="sc-card p-3 bg-light border-dashed mt-3 shadow-none">
+    <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="small fw-bold text-dark"><i class="bi bi-lightning-charge-fill text-warning me-1"></i>Quick Demo Credentials</span>
+        <span class="badge bg-secondary-subtle text-secondary" style="font-size: 0.65rem;">Click to Fill</span>
+    </div>
+    <div class="d-grid gap-2">
+        <button type="button" class="btn btn-sm btn-outline-primary text-start d-flex justify-content-between align-items-center"
+                onclick="fillDemo('admin@smartcampus.edu', 'Admin@123')">
+            <span><i class="bi bi-shield-lock me-1"></i> <strong>Admin</strong> (admin@smartcampus.edu)</span>
+            <span class="badge bg-primary">Fill</span>
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-success text-start d-flex justify-content-between align-items-center"
+                onclick="fillDemo('faculty@smartcampus.edu', 'Faculty@123')">
+            <span><i class="bi bi-person-workspace me-1"></i> <strong>Faculty</strong> (faculty@smartcampus.edu)</span>
+            <span class="badge bg-success">Fill</span>
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-secondary text-start d-flex justify-content-between align-items-center"
+                onclick="fillDemo('student@smartcampus.edu', 'Student@123')">
+            <span><i class="bi bi-person-badge me-1"></i> <strong>Student</strong> (student@smartcampus.edu)</span>
+            <span class="badge bg-secondary">Fill</span>
+        </button>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function fillDemo(email, pass) {
+            document.getElementById('loginEmail').value = email;
+            document.getElementById('loginPassword').value = pass;
+        }
+    </script>
+}

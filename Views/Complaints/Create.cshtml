@@ -1,0 +1,82 @@
+@model CreateComplaintDto
+@{
+    ViewData["Title"] = "Submit Complaint";
+    var departments = ViewBag.Departments as List<Department> ?? new List<Department>();
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="mb-4">
+            <h2 class="fw-bold text-dark mb-1">Lodge a Complaint</h2>
+            <p class="text-muted small mb-0">Submit campus grievances, facility breakdowns, or academic issues for staff resolution.</p>
+        </div>
+
+        <div class="sc-card p-4">
+            <form asp-action="Create" method="post" enctype="multipart/form-data">
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+                <div class="mb-3">
+                    <label asp-for="Title" class="form-label small fw-semibold text-secondary">Complaint Subject / Title</label>
+                    <input asp-for="Title" class="form-control" placeholder="e.g. Projector malfunctioning in Room 304" required />
+                    <span asp-validation-for="Title" class="text-danger small"></span>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-sm-6">
+                        <label asp-for="Category" class="form-label small fw-semibold text-secondary">Category</label>
+                        <select asp-for="Category" class="form-select" required>
+                            <option value="">-- Select Category --</option>
+                            <option value="@ComplaintCategories.Infrastructure">Infrastructure</option>
+                            <option value="@ComplaintCategories.Academic">Academic</option>
+                            <option value="@ComplaintCategories.Hostel">Hostel</option>
+                            <option value="@ComplaintCategories.Maintenance">Maintenance</option>
+                            <option value="@ComplaintCategories.ITSupport">IT Support</option>
+                            <option value="@ComplaintCategories.Other">Other</option>
+                        </select>
+                        <span asp-validation-for="Category" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-sm-6">
+                        <label asp-for="DepartmentId" class="form-label small fw-semibold text-secondary">Assigned Department</label>
+                        <select asp-for="DepartmentId" class="form-select">
+                            <option value="">-- General / Unassigned --</option>
+                            @foreach (var dept in departments)
+                            {
+                                <option value="@dept.Id">@dept.DepartmentName</option>
+                            }
+                        </select>
+                        <span asp-validation-for="DepartmentId" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Description" class="form-label small fw-semibold text-secondary">Detailed Description</label>
+                    <textarea asp-for="Description" class="form-control" rows="5" placeholder="Provide complete context, room number, exact problem, and impact..." required></textarea>
+                    <span asp-validation-for="Description" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label small fw-semibold text-secondary">Optional Attachment (Photo / Screenshot)</label>
+                    <input type="file" name="imageFile" class="form-control" accept=".jpg,.jpeg,.png,.webp" />
+                    <div class="form-text small">Accepted formats: JPG, PNG, WEBP (Max 5MB).</div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+                    <a asp-action="Index" class="btn btn-outline-secondary">
+                        &larr; Cancel
+                    </a>
+                    <button type="submit" class="btn btn-primary px-4 py-2 fw-medium shadow-sm">
+                        Submit Complaint &rarr;
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+

@@ -1,0 +1,179 @@
+@using System.Security.Claims
+@model ComplaintResponseDto
+@{
+    ViewData["Title"] = $"Complaint #{Model.Id.Substring(Math.Max(0, Model.Id.Length - 6))}";
+    var canUpdate = User.IsInRole(UserRoles.Admin) || User.IsInRole(UserRoles.Faculty);
+    var facultyList = ViewBag.FacultyMembers as List<ApplicationUser> ?? new List<ApplicationUser>();
+}
+
+<!-- Header -->
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <span class="badge bg-light text-dark border">@Model.Category</span>
+            <span class="text-muted small">&bull; ID: <code>@Model.Id</code></span>
+        </div>
+        <h2 class="fw-bold text-dark mb-0">@Model.Title</h2>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        @Html.Raw(PortalBadgeHelper.RenderBadge(Model.Status))
+        <a asp-action="Index" class="btn btn-sm btn-outline-secondary">
+            &larr; Back to List
+        </a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Left Column: Details, Image Attachment, Status Update -->
+    <div class="col-lg-7">
+        <!-- Main Info Card -->
+        <div class="sc-card mb-4">
+            <div class="sc-card-header">
+                <h5 class="sc-card-title"><i class="bi bi-card-text text-primary me-2"></i>Complaint Information</h5>
+                <span class="text-muted small">Submitted @Model.CreatedAt.ToString("MMM dd, yyyy HH:mm")</span>
+            </div>
+            <div class="sc-card-body">
+                <div class="row g-3 mb-3 pb-3 border-bottom">
+                    <div class="col-sm-6">
+                        <span class="text-muted small text-uppercase fw-semibold d-block">Lodged By</span>
+                        <span class="fw-semibold text-dark">@(Model.UserName ?? "Student")</span>
+                    </div>
+                    <div class="col-sm-6">
+                        <span class="text-muted small text-uppercase fw-semibold d-block">Target Department</span>
+                        <span class="fw-semibold text-dark">@(Model.DepartmentName ?? "General Campus")</span>
+                    </div>
+                    <div class="col-sm-6">
+                        <span class="text-muted small text-uppercase fw-semibold d-block">Current Assigned Staff</span>
+                        <span class="fw-medium text-dark">@(string.IsNullOrEmpty(Model.AssignedTo) ? "Unassigned" : Model.AssignedTo)</span>
+                    </div>
+                    <div class="col-sm-6">
+                        <span class="text-muted small text-uppercase fw-semibold d-block">Last Updated</span>
+                        <span class="fw-medium text-muted">@Model.UpdatedAt.ToString("MMM dd, yyyy HH:mm")</span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <span class="text-muted small text-uppercase fw-semibold d-block mb-1">Description</span>
+                    <div class="p-3 bg-light rounded-3 text-secondary" style="white-space: pre-wrap; line-height: 1.6;">@Model.Description</div>
+                </div>
+
+                @if (!string.IsNullOrEmpty(Model.ResolutionNotes))
+                {
+                    <div class="mb-3">
+                        <span class="text-success small text-uppercase fw-semibold d-block mb-1">
+                            <i class="bi bi-check2-all me-1"></i>Official Resolution Notes
+                        </span>
+                        <div class="p-3 bg-success-subtle border border-success-subtle rounded-3 text-dark">
+                            @Model.ResolutionNotes
+                        </div>
+                    </div>
+                }
+
+                @if (!string.IsNullOrEmpty(Model.ImageUrl))
+                {
+                    <div>
+                        <span class="text-muted small text-uppercase fw-semibold d-block mb-2">Attached Image Evidence</span>
+                        <a href="@Model.ImageUrl" target="_blank" rel="noopener">
+                            <img src="@Model.ImageUrl" alt="Complaint attachment" class="img-fluid rounded-3 border shadow-sm" style="max-height: 320px;" />
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Admin / Faculty Status Update Box -->
+        @if (canUpdate)
+        {
+            <div class="sc-card">
+                <div class="sc-card-header bg-light">
+                    <h5 class="sc-card-title"><i class="bi bi-pencil-square text-primary me-2"></i>Update Complaint Status &amp; Resolution</h5>
+                </div>
+                <div class="sc-card-body">
+                    <form asp-action="UpdateStatus" asp-route-id="@Model.Id" method="post">
+                        @Html.AntiForgeryToken()
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-sm-6">
+                                <label class="form-label small fw-semibold text-secondary">New Status</label>
+                                <select name="Status" class="form-select" required>
+                                    <option value="@ComplaintStatuses.Pending" selected="@(Model.Status == ComplaintStatuses.Pending)">Pending</option>
+                                    <option value="@ComplaintStatuses.Assigned" selected="@(Model.Status == ComplaintStatuses.Assigned)">Assigned</option>
+                                    <option value="@ComplaintStatuses.InProgress" selected="@(Model.Status == ComplaintStatuses.InProgress)">In Progress</option>
+                                    <option value="@ComplaintStatuses.Resolved" selected="@(Model.Status == ComplaintStatuses.Resolved)">Resolved</option>
+                                    <option value="@ComplaintStatuses.Rejected" selected="@(Model.Status == ComplaintStatuses.Rejected)">Rejected</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="form-label small fw-semibold text-secondary">Assign Staff Member</label>
+                                <select name="AssignedTo" class="form-select">
+                                    <option value="">-- Leave Unassigned --</option>
+                                    @foreach (var fac in facultyList)
+                                    {
+                                        <option value="@fac.FullName" selected="@(Model.AssignedTo == fac.FullName)">@fac.FullName (@fac.Email)</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-semibold text-secondary">Status Change Remarks</label>
+                            <input name="Remarks" class="form-control" placeholder="e.g. Technician dispatched to inspect equipment" />
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label small fw-semibold text-secondary">Resolution Notes (If resolved or closed)</label>
+                            <textarea name="ResolutionNotes" class="form-control" rows="3" placeholder="Explain the root cause and resolution provided...">@Model.ResolutionNotes</textarea>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 py-2 fw-medium shadow-sm">
+                            <i class="bi bi-check-lg me-1"></i> Save Status Update
+                        </button>
+                    </form>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Right Column: Audit Trail & Status History -->
+    <div class="col-lg-5">
+        <div class="sc-card">
+            <div class="sc-card-header">
+                <h5 class="sc-card-title"><i class="bi bi-clock-history text-primary me-2"></i>Resolution History</h5>
+                <span class="badge bg-light text-dark border">@Model.History.Count events</span>
+            </div>
+            <div class="p-3">
+                @if (Model.History.Any())
+                {
+                    <div class="timeline">
+                        @foreach (var h in Model.History.OrderByDescending(x => x.CreatedAt))
+                        {
+                            <div class="timeline-item pb-3 mb-3 border-bottom">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span class="fw-semibold small text-dark">
+                                        <i class="bi bi-arrow-right-circle text-primary me-1"></i>
+                                        @(h.PreviousStatus ?? "New") &rarr; @h.NewStatus
+                                    </span>
+                                    <span class="text-muted" style="font-size: 0.7rem;">@h.CreatedAt.ToString("MMM dd, HH:mm")</span>
+                                </div>
+                                <div class="small text-secondary mb-1">
+                                    Updated by: <strong>@h.UpdatedBy</strong>
+                                </div>
+                                @if (!string.IsNullOrEmpty(h.Remarks))
+                                {
+                                    <div class="p-2 bg-light rounded text-muted small" style="font-size: 0.78rem;">
+                                        @h.Remarks
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="text-center py-4 text-muted small">No status change events logged yet.</div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+

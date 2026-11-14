@@ -1,0 +1,107 @@
+@model RegisterRequestDto
+@{
+    Layout = "_AuthLayout";
+    ViewData["Title"] = "Create Account";
+    var departments = ViewBag.Departments as List<Department> ?? new List<Department>();
+}
+
+<div class="row justify-content-center py-4">
+    <div class="col-md-7 col-lg-6 col-xl-5">
+        <div class="text-center mb-4">
+            <h3 class="fw-bold text-dark mb-1">Create an Account</h3>
+            <p class="text-muted small">Join the Smart Campus Service Portal</p>
+        </div>
+
+        <div class="sc-card p-4">
+            <form asp-controller="Account" asp-action="Register" method="post">
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="ModelOnly" class="text-danger small mb-3"></div>
+
+                <div class="mb-3">
+                    <label asp-for="FullName" class="form-label small fw-semibold text-secondary">Full Name</label>
+                    <input asp-for="FullName" class="form-control" placeholder="e.g. Alex Morgan" required />
+                    <span asp-validation-for="FullName" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Email" class="form-label small fw-semibold text-secondary">Campus Email</label>
+                    <input asp-for="Email" type="email" class="form-control" placeholder="e.g. alex@smartcampus.edu" required />
+                    <span asp-validation-for="Email" class="text-danger small"></span>
+                </div>
+
+                <div class="row g-2 mb-3">
+                    <div class="col-sm-6">
+                        <label asp-for="Role" class="form-label small fw-semibold text-secondary">Account Role</label>
+                        <select asp-for="Role" class="form-select" id="roleSelect" onchange="toggleStudentFields()">
+                            <option value="@UserRoles.Student">Student</option>
+                            <option value="@UserRoles.Faculty">Faculty</option>
+                        </select>
+                        <span asp-validation-for="Role" class="text-danger small"></span>
+                    </div>
+                    <div class="col-sm-6">
+                        <label asp-for="DepartmentId" class="form-label small fw-semibold text-secondary">Department</label>
+                        <select asp-for="DepartmentId" class="form-select">
+                            <option value="">-- Select Department --</option>
+                            @foreach (var dept in departments)
+                            {
+                                <option value="@dept.Id">@dept.DepartmentName</option>
+                            }
+                        </select>
+                        <span asp-validation-for="DepartmentId" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="row g-2 mb-3" id="studentFieldsRow">
+                    <div class="col-sm-6">
+                        <label asp-for="StudentId" class="form-label small fw-semibold text-secondary">Student ID</label>
+                        <input asp-for="StudentId" class="form-control" placeholder="e.g. STU-2026-0042" />
+                        <span asp-validation-for="StudentId" class="text-danger small"></span>
+                    </div>
+                    <div class="col-sm-6">
+                        <label asp-for="PhoneNumber" class="form-label small fw-semibold text-secondary">Phone Number</label>
+                        <input asp-for="PhoneNumber" class="form-control" placeholder="+1 (555) 000-0000" />
+                        <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="row g-2 mb-4">
+                    <div class="col-sm-6">
+                        <label asp-for="Password" class="form-label small fw-semibold text-secondary">Password</label>
+                        <input asp-for="Password" type="password" class="form-control" placeholder="••••••••" required />
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                    </div>
+                    <div class="col-sm-6">
+                        <label asp-for="ConfirmPassword" class="form-label small fw-semibold text-secondary">Confirm Password</label>
+                        <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="••••••••" required />
+                        <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-medium shadow-sm mb-3">
+                    Register Account &rarr;
+                </button>
+            </form>
+
+            <div class="text-center pt-2 border-top">
+                <span class="small text-muted">Already registered? </span>
+                <a asp-controller="Account" asp-action="Login" class="small fw-semibold text-decoration-none">Sign in here</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function toggleStudentFields() {
+            const role = document.getElementById('roleSelect').value;
+            const row = document.getElementById('studentFieldsRow');
+            if (row) {
+                row.style.display = role === 'Student' ? 'flex' : 'none';
+            }
+        }
+        toggleStudentFields();
+    </script>
+}
+

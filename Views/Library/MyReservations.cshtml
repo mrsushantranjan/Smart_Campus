@@ -1,0 +1,88 @@
+@model List<ReservationResponseDto>
+@{
+    ViewData["Title"] = "My Book Reservations";
+    var statusFilter = ViewBag.StatusFilter as string;
+}
+
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <h2 class="fw-bold text-dark mb-1">My Reserved Books</h2>
+        <p class="text-muted small mb-0">Track active book reservations, pickup schedule, and cancellation requests</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Index" class="btn btn-sm btn-primary px-3 shadow-sm">
+            <i class="bi bi-book me-1"></i> Browse Library Catalog
+        </a>
+    </div>
+</div>
+
+<!-- Filters Bar -->
+<div class="sc-card p-3 mb-4">
+    <div class="d-flex align-items-center gap-2">
+        <span class="small fw-semibold text-muted">Status:</span>
+        <div class="btn-group btn-group-sm">
+            <a asp-action="MyReservations" class="btn @(string.IsNullOrEmpty(statusFilter) ? "btn-dark" : "btn-outline-secondary")">All</a>
+            <a asp-action="MyReservations" asp-route-status="@ReservationStatuses.Active" class="btn @(statusFilter == ReservationStatuses.Active ? "btn-dark" : "btn-outline-secondary")">Active</a>
+            <a asp-action="MyReservations" asp-route-status="@ReservationStatuses.Fulfilled" class="btn @(statusFilter == ReservationStatuses.Fulfilled ? "btn-dark" : "btn-outline-secondary")">Fulfilled</a>
+            <a asp-action="MyReservations" asp-route-status="@ReservationStatuses.Cancelled" class="btn @(statusFilter == ReservationStatuses.Cancelled ? "btn-dark" : "btn-outline-secondary")">Cancelled</a>
+        </div>
+    </div>
+</div>
+
+<div class="sc-card">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light small text-uppercase text-muted">
+                <tr>
+                    <th>Book Title</th>
+                    <th>Author</th>
+                    <th>Category</th>
+                    <th>Reserved On</th>
+                    <th>Status</th>
+                    <th class="text-end">Action</th>
+                </tr>
+            </thead>
+            <tbody class="small">
+                @if (Model.Any())
+                {
+                    @foreach (var r in Model)
+                    {
+                        <tr>
+                            <td class="fw-bold text-dark">@r.BookTitle</td>
+                            <td class="text-secondary">@r.Author</td>
+                            <td><span class="badge bg-light text-dark border">@r.Category</span></td>
+                            <td class="text-muted">@r.ReservationDate.ToString("MMM dd, yyyy HH:mm")</td>
+                            <td>@Html.Raw(PortalBadgeHelper.RenderBadge(r.Status))</td>
+                            <td class="text-end">
+                                @if (r.Status == ReservationStatuses.Active)
+                                {
+                                    <form asp-action="CancelReservation" asp-route-id="@r.Id" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="returnAction" value="MyReservations" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Cancel reservation for &quot;@r.BookTitle&quot;? This releases the reserved copy back to available inventory.');">
+                                            Cancel Reservation
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <span class="text-muted small">&mdash;</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted">
+                            <i class="bi bi-journal-x fs-2 d-block mb-2 text-secondary"></i>
+                            No reservations found. <a asp-action="Index">Browse books</a> to reserve one.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+

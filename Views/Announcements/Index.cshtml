@@ -1,0 +1,102 @@
+@using System.Security.Claims
+@model List<AnnouncementResponseDto>
+@{
+    ViewData["Title"] = "Campus Announcements";
+    var search = ViewBag.Search as string;
+    var isAdmin = User.IsInRole(UserRoles.Admin);
+}
+
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <h2 class="fw-bold text-dark mb-1">Campus Announcements &amp; Notices</h2>
+        <p class="text-muted small mb-0">Official circulars, academic schedules, events, and administrative bulletins</p>
+    </div>
+    @if (isAdmin)
+    {
+        <a asp-action="Create" class="btn btn-sm btn-primary px-3 shadow-sm">
+            <i class="bi bi-megaphone me-1"></i> Broadcast Announcement
+        </a>
+    }
+</div>
+
+<!-- Search Bar -->
+<div class="sc-card p-3 mb-4">
+    <form method="get" asp-action="Index" class="row g-2 align-items-center">
+        <div class="col-md-9">
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-search"></i></span>
+                <input type="text" name="search" value="@search" class="form-control border-start-0" placeholder="Search notices by keyword or title..." />
+            </div>
+        </div>
+        <div class="col-md-3 d-flex gap-1">
+            <button type="submit" class="btn btn-sm btn-dark w-100">Search</button>
+            @if (!string.IsNullOrEmpty(search))
+            {
+                <a asp-action="Index" class="btn btn-sm btn-outline-secondary">Clear</a>
+            }
+        </div>
+    </form>
+</div>
+
+<!-- Announcements Grid -->
+<div class="row g-4">
+    @if (Model.Any())
+    {
+        @foreach (var a in Model)
+        {
+            <div class="col-md-6 col-lg-4">
+                <div class="sc-card h-100 d-flex flex-column border">
+                    <div class="p-3 border-bottom d-flex justify-content-between align-items-center bg-light">
+                        <span class="badge bg-primary-subtle text-primary fw-semibold" style="font-size: 0.72rem;">@a.Category</span>
+                        <div class="d-flex align-items-center gap-1">
+                            @if (!a.IsActive)
+                            {
+                                <span class="badge bg-secondary-subtle text-secondary" style="font-size: 0.68rem;">Draft</span>
+                            }
+                            <span class="text-muted" style="font-size: 0.72rem;">@a.PublishedAt.ToString("MMM dd, yyyy")</span>
+                        </div>
+                    </div>
+                    <div class="p-3 flex-grow-1">
+                        <h5 class="fw-bold text-dark mb-2">
+                            <a asp-action="Details" asp-route-id="@a.Id" class="text-dark text-decoration-none">
+                                @a.Title
+                            </a>
+                        </h5>
+                        <p class="text-muted small mb-0" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.6;">
+                            @a.Description
+                        </p>
+                    </div>
+                    <div class="p-3 pt-2 border-top d-flex justify-content-between align-items-center small">
+                        <span class="text-muted" style="font-size: 0.72rem;">By: <strong>@a.PublishedBy</strong></span>
+                        <div class="d-flex gap-1">
+                            <a asp-action="Details" asp-route-id="@a.Id" class="btn btn-sm btn-link text-decoration-none p-0">Read &rarr;</a>
+                            @if (isAdmin)
+                            {
+                                <span class="text-muted mx-1">|</span>
+                                <a asp-action="Edit" asp-route-id="@a.Id" class="text-secondary text-decoration-none">Edit</a>
+                                <span class="text-muted mx-1">|</span>
+                                <form asp-action="Delete" asp-route-id="@a.Id" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-link text-danger p-0 border-0 small" onclick="return confirm('Delete announcement?');">
+                                        Delete
+                                    </button>
+                                </form>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="col-12">
+            <div class="sc-card p-5 text-center text-muted">
+                <i class="bi bi-megaphone fs-1 d-block mb-2 text-secondary"></i>
+                <h5>No Announcements Found</h5>
+                <p class="small mb-0">No active circulars match your search.</p>
+            </div>
+        </div>
+    }
+</div>
+

@@ -1,0 +1,182 @@
+@model FacultyDashboardDto
+@{
+    ViewData["Title"] = "Faculty Dashboard";
+}
+
+<!-- Welcome Header -->
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <h2 class="fw-bold text-dark mb-1">Faculty Portal &bull; @Model.User.FullName</h2>
+        <p class="text-muted small mb-0">Departmental Complaints, Internal Requests &amp; Academic Resources</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-controller="ServiceRequests" asp-action="Create" class="btn btn-sm btn-primary px-3 shadow-sm">
+            <i class="bi bi-plus-circle me-1"></i> New Service Request
+        </a>
+        <a asp-controller="Library" asp-action="Index" class="btn btn-sm btn-outline-secondary px-3 shadow-sm">
+            <i class="bi bi-book me-1"></i> Library Catalog
+        </a>
+    </div>
+</div>
+
+<!-- KPI Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-6">
+        <div class="sc-stat-card">
+            <div class="stat-info">
+                <span class="stat-label">Department Complaints Assigned</span>
+                <span class="stat-value text-primary">@Model.AssignedComplaintsCount</span>
+            </div>
+            <div class="stat-icon bg-primary-subtle text-primary">
+                <i class="bi bi-shield-check"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-6">
+        <div class="sc-stat-card">
+            <div class="stat-info">
+                <span class="stat-label">My Service Requests</span>
+                <span class="stat-value text-secondary">@Model.TotalServiceRequests</span>
+            </div>
+            <div class="stat-icon bg-light text-secondary">
+                <i class="bi bi-file-earmark-text"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <!-- Assigned Complaints -->
+        <div class="sc-card mb-4">
+            <div class="sc-card-header">
+                <h5 class="sc-card-title"><i class="bi bi-shield-exclamation text-primary me-2"></i>Assigned Department Complaints</h5>
+                <a asp-controller="Complaints" asp-action="Index" class="btn btn-sm btn-link text-decoration-none">View all &rarr;</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light small text-uppercase text-muted">
+                        <tr>
+                            <th>Title &amp; Category</th>
+                            <th>Student</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th class="text-end">Manage</th>
+                        </tr>
+                    </thead>
+                    <tbody class="small">
+                        @if (Model.AssignedComplaints.Any())
+                        {
+                            @foreach (var c in Model.AssignedComplaints)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="fw-semibold text-dark">@c.Title</div>
+                                        <span class="text-muted" style="font-size: 0.75rem;">@c.Category</span>
+                                    </td>
+                                    <td>@(c.UserName ?? "Student")</td>
+                                    <td>@Html.Raw(PortalBadgeHelper.RenderBadge(c.Status))</td>
+                                    <td class="text-muted">@c.CreatedAt.ToString("MMM dd, yyyy")</td>
+                                    <td class="text-end">
+                                        <a asp-controller="Complaints" asp-action="Details" asp-route-id="@c.Id" class="btn btn-sm btn-outline-primary">
+                                            Update Status
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="5" class="text-center py-4 text-muted">
+                                    <i class="bi bi-check2-circle fs-3 d-block mb-1 text-success"></i>
+                                    No complaints currently assigned to your department.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- My Service Requests -->
+        <div class="sc-card">
+            <div class="sc-card-header">
+                <h5 class="sc-card-title"><i class="bi bi-file-earmark-check text-primary me-2"></i>My Service Requests</h5>
+                <a asp-controller="ServiceRequests" asp-action="Index" class="btn btn-sm btn-link text-decoration-none">All &rarr;</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light small text-uppercase text-muted">
+                        <tr>
+                            <th>Type &amp; Subject</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Admin Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody class="small">
+                        @if (Model.MyRequests.Any())
+                        {
+                            @foreach (var r in Model.MyRequests)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="fw-semibold text-dark">@r.Title</div>
+                                        <span class="badge bg-light text-dark border">@r.RequestType</span>
+                                    </td>
+                                    <td>@Html.Raw(PortalBadgeHelper.RenderBadge(r.Status))</td>
+                                    <td class="text-muted">@r.CreatedAt.ToString("MMM dd, yyyy")</td>
+                                    <td class="text-muted">@(string.IsNullOrEmpty(r.AdminRemarks) ? "—" : r.AdminRemarks)</td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="4" class="text-center py-4 text-muted">
+                                    No active service requests submitted.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Announcements -->
+    <div class="col-lg-4">
+        <div class="sc-card mb-4">
+            <div class="sc-card-header">
+                <h5 class="sc-card-title"><i class="bi bi-megaphone text-primary me-2"></i>Campus Announcements</h5>
+                <a asp-controller="Announcements" asp-action="Index" class="btn btn-sm btn-link text-decoration-none">View all</a>
+            </div>
+            <div class="p-3">
+                @if (Model.LatestAnnouncements.Any())
+                {
+                    @foreach (var a in Model.LatestAnnouncements)
+                    {
+                        <div class="p-3 mb-2 rounded-3 bg-light border-start border-3 border-primary">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span class="badge bg-secondary-subtle text-secondary" style="font-size: 0.7rem;">@a.Category</span>
+                                <span class="text-muted" style="font-size: 0.7rem;">@a.PublishedAt.ToString("MMM dd")</span>
+                            </div>
+                            <h6 class="fw-bold mb-1">
+                                <a asp-controller="Announcements" asp-action="Details" asp-route-id="@a.Id" class="text-dark text-decoration-none">
+                                    @a.Title
+                                </a>
+                            </h6>
+                            <p class="text-muted small mb-0 text-truncate">@a.Description</p>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center py-3 text-muted small">No announcements posted yet.</div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+

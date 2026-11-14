@@ -1,0 +1,184 @@
+@model SmartCampus.DTOs.UpdateProfileDto
+@{
+    ViewData["Title"] = "My Profile";
+    var user = ViewBag.User as SmartCampus.Models.ApplicationUser ?? new SmartCampus.Models.ApplicationUser();
+    var departmentName = ViewBag.DepartmentName as string ?? user.DepartmentName ?? "General / Unassigned";
+    var departments = ViewBag.Departments as List<SmartCampus.Models.Department> ?? new List<SmartCampus.Models.Department>();
+    var initials = !string.IsNullOrWhiteSpace(user.FullName) ? user.FullName[0].ToString().ToUpper() : "U";
+}
+
+<div class="container-fluid px-0">
+    <!-- Page Header -->
+    <div class="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom">
+        <div>
+            <h3 class="fw-bold text-dark mb-1">Account & Profile</h3>
+            <p class="text-muted small mb-0">Manage your campus personal information, department affiliation, and security</p>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <span class="badge @(user.IsActive ? "bg-success-subtle text-success border border-success-subtle" : "bg-danger-subtle text-danger") px-3 py-2">
+                <i class="bi bi-circle-fill me-1" style="font-size: 0.55rem;"></i>
+                @(user.IsActive ? "Active Account" : "Suspended")
+            </span>
+        </div>
+    </div>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show d-flex align-items-center" role="alert">
+            <i class="bi bi-check-circle-fill me-2 fs-5"></i>
+            <div>@TempData["SuccessMessage"]</div>
+            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show d-flex align-items-center" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+            <div>@TempData["ErrorMessage"]</div>
+            <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="row g-4">
+        <!-- Left: User Identity Card -->
+        <div class="col-lg-4">
+            <div class="sc-card shadow-sm h-100">
+                <div class="sc-card-body p-4 text-center">
+                    <div class="user-avatar mx-auto mb-3 shadow-sm" style="width: 80px; height: 80px; font-size: 2.2rem; background-color: #0f172a; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700;">
+                        @initials
+                    </div>
+                    <h5 class="fw-bold text-dark mb-1">@user.FullName</h5>
+                    <p class="text-muted small mb-3">@user.Email</p>
+
+                    <div class="d-flex justify-content-center gap-2 mb-4">
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-1">
+                            <i class="bi bi-shield-check me-1"></i> @user.Role
+                        </span>
+                        <span class="badge bg-light text-dark border px-3 py-1">
+                            <i class="bi bi-building me-1"></i> @departmentName
+                        </span>
+                    </div>
+
+                    <hr class="my-3 text-muted opacity-25">
+
+                    <div class="text-start small">
+                        <div class="d-flex justify-content-between py-2 border-bottom">
+                            <span class="text-muted">Account ID</span>
+                            <span class="font-monospace text-secondary text-truncate" style="max-width: 140px;" title="@user.Id">@user.Id</span>
+                        </div>
+                        <div class="d-flex justify-content-between py-2 border-bottom">
+                            <span class="text-muted">Member Since</span>
+                            <span class="fw-medium text-dark">@user.CreatedAt.ToString("MMM dd, yyyy")</span>
+                        </div>
+                        <div class="d-flex justify-content-between py-2 border-bottom">
+                            <span class="text-muted">Role Permissions</span>
+                            <span class="fw-medium text-primary">@user.Role Level</span>
+                        </div>
+                        @if (!string.IsNullOrEmpty(user.StudentId))
+                        {
+                            <div class="d-flex justify-content-between py-2 border-bottom">
+                                <span class="text-muted">Student ID</span>
+                                <span class="fw-bold text-dark font-monospace">@user.StudentId</span>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="mt-4 pt-2">
+                        <form asp-controller="Account" asp-action="Logout" method="post">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-outline-danger w-100 btn-sm">
+                                <i class="bi bi-box-arrow-right me-1"></i> Sign Out
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Profile Settings Form -->
+        <div class="col-lg-8">
+            <div class="sc-card shadow-sm">
+                <div class="sc-card-body p-4">
+                    <div class="d-flex align-items-center justify-content-between mb-3 pb-3 border-bottom">
+                        <div>
+                            <h5 class="fw-bold text-dark mb-1">Edit Profile Information</h5>
+                            <p class="text-muted small mb-0">Update your personal contact information and campus credentials</p>
+                        </div>
+                        <i class="bi bi-person-gear text-primary fs-3"></i>
+                    </div>
+
+                    <form asp-controller="Account" asp-action="Profile" method="post">
+                        @Html.AntiForgeryToken()
+                        <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small" role="alert"></div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="FullName" class="form-label fw-semibold small text-dark">Full Name <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0"><i class="bi bi-person text-muted"></i></span>
+                                    <input asp-for="FullName" class="form-control border-start-0" placeholder="e.g. John Doe" required />
+                                </div>
+                                <span asp-validation-for="FullName" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold small text-dark">Email Address</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0"><i class="bi bi-envelope text-muted"></i></span>
+                                    <input type="email" class="form-control border-start-0 bg-light" value="@user.Email" disabled readonly />
+                                    <span class="input-group-text bg-light"><i class="bi bi-lock text-muted" title="Managed by University SSO"></i></span>
+                                </div>
+                                <div class="form-text small">Email address is managed by campus administration.</div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="DepartmentId" class="form-label fw-semibold small text-dark">Department Affiliation</label>
+                                <select asp-for="DepartmentId" class="form-select">
+                                    <option value="">-- Select Department --</option>
+                                    @foreach (var dept in departments)
+                                    {
+                                        <option value="@dept.Id" selected="@(dept.Id == Model.DepartmentId ? "selected" : null)">
+                                            @dept.DepartmentName
+                                        </option>
+                                    }
+                                </select>
+                                <span asp-validation-for="DepartmentId" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="PhoneNumber" class="form-label fw-semibold small text-dark">Contact Phone</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0"><i class="bi bi-telephone text-muted"></i></span>
+                                    <input asp-for="PhoneNumber" class="form-control border-start-0" placeholder="+1 (555) 000-0000" />
+                                </div>
+                                <span asp-validation-for="PhoneNumber" class="text-danger small"></span>
+                            </div>
+
+                            @if (user.Role == SmartCampus.Models.UserRoles.Student || !string.IsNullOrEmpty(user.StudentId))
+                            {
+                                <div class="col-md-6">
+                                    <label asp-for="StudentId" class="form-label fw-semibold small text-dark">Student ID Number</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-light border-end-0"><i class="bi bi-card-text text-muted"></i></span>
+                                        <input asp-for="StudentId" class="form-control border-start-0 font-monospace" placeholder="e.g. STU-2024-001" />
+                                    </div>
+                                    <span asp-validation-for="StudentId" class="text-danger small"></span>
+                                </div>
+                            }
+
+                            <div class="col-12 mt-4 pt-3 border-top d-flex justify-content-between align-items-center">
+                                <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary btn-sm px-3">
+                                    <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+                                </a>
+                                <button type="submit" class="btn btn-primary px-4 shadow-sm">
+                                    <i class="bi bi-check2-circle me-1"></i> Save Changes
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

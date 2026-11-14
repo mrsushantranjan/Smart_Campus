@@ -1,0 +1,223 @@
+@{
+    ViewData["Title"] = "REST API Documentation";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold text-dark mb-1">REST API Documentation</h2>
+        <p class="text-muted small mb-0">Complete RESTful Web API endpoints backed by MongoDB and ASP.NET Core Web API.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="/swagger" target="_blank" rel="noopener" class="btn btn-primary px-3 shadow-sm">
+            <i class="bi bi-box-arrow-up-right me-1"></i> Interactive Swagger UI
+        </a>
+    </div>
+</div>
+
+<div class="sc-card mb-4">
+    <div class="sc-card-header">
+        <h5 class="sc-card-title"><i class="bi bi-key text-primary me-2"></i>Authentication &amp; Headers</h5>
+    </div>
+    <div class="sc-card-body">
+        <p class="small text-muted mb-2">
+            All API endpoints accept and return <code>application/json</code>. Authenticated requests use ASP.NET Core session cookies or credentials.
+        </p>
+        <div class="bg-light p-3 rounded-3 font-monospace small">
+            <div>Accept: application/json</div>
+            <div>Content-Type: application/json</div>
+        </div>
+    </div>
+</div>
+
+<!-- API Endpoints Table -->
+<div class="sc-card mb-4">
+    <div class="sc-card-header">
+        <h5 class="sc-card-title"><i class="bi bi-diagram-3 text-primary me-2"></i>Endpoints Directory</h5>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light small text-uppercase text-muted">
+                <tr>
+                    <th style="width: 100px;">Method</th>
+                    <th style="width: 280px;">Endpoint</th>
+                    <th>Description</th>
+                    <th style="width: 130px;">Access Role</th>
+                </tr>
+            </thead>
+            <tbody class="small">
+                <!-- Auth -->
+                <tr>
+                    <td><span class="badge bg-success">POST</span></td>
+                    <td><code>/api/auth/register</code></td>
+                    <td>Register a new student or faculty account</td>
+                    <td><span class="badge bg-light text-dark border">Public</span></td>
+                </tr>
+                <tr>
+                    <td><span class="badge bg-success">POST</span></td>
+                    <td><code>/api/auth/login</code></td>
+                    <td>Authenticate user with email and password</td>
+                    <td><span class="badge bg-light text-dark border">Public</span></td>
+                </tr>
+                <tr>
+                    <td><span class="badge bg-primary">GET</span></td>
+                    <td><code>/api/auth/me</code></td>
+                    <td>Get profile of currently authenticated user</td>
+                    <td><span class="badge bg-secondary">Authenticated</span></td>
+                </tr>
+
+                <!-- Users -->
+                <tr>
+                    <td><span class="badge bg-primary">GET</span></td>
+                    <td><code>/api/users</code></td>
+                    <td>List all users (with optional role &amp; active filter)</td>
+                    <td><span class="badge bg-dark">Admin</span></td>
+                </tr>
+                <tr>
+                    <td><span class="badge bg-primary">GET</span></td>
+                    <td><code>/api/users/{id}</code></td>
+                    <td>Get user profile by MongoDB ObjectId</td>
+                    <td><span class="badge bg-dark">Admin</span></td>
+                </tr>
+
+                <!-- Complaints -->
+                <tr>
+                    <td><span class="badge bg-primary">GET</span></td>
+                    <td><code>/api/complaints</code></td>
+                    <td>List complaints (filtered by role and status)</td>
+                    <td><span class="badge bg-secondary">Authenticated</span></td>
+                </tr>
+                <tr>
+                    <td><span class="badge bg-primary">GET</span></td>
+                    <td><code>/api/complaints/{id}</code></td>
+                    <td>Get complaint details with full status history</td>
+                    <td><span class="badge bg-secondary">Authenticated</span></td>
+                </tr>
+                <tr>
+                    <td><span class="badge bg-success">POST</span></td>
+                    <td><code>/api/complaints</code></td>
+                    <td>Submit new complaint (with optional image file upload)</td>
+                    <td><span class="badge bg-info text-dark">Student / Admin</span></td>
+                </tr>
+                <tr>
+                    <td><span class="badge bg-warning text-dark">PATCH</span></td>
+                    <td><code>/api/complaints/{id}/status</code></td>
+                    <td>Update complaint status (Assigned, In Progress, Resolved, Rejected)</td>
+                    <td><span class="badge bg-dark">Admin / Faculty</span></td>
+                </tr>
+                <tr>
+                    <td><span class="badge bg-danger">DELETE</span></td>
+                    <td><code>/api/complaints/{id}</code></td>
+                    <td>Delete complaint document from MongoDB</td>
+                    <td><span class="badge bg-dark">Admin</span></td>
+                </tr>
+
+                <!-- Library Books -->
+                <tr>
+                    <td><span class="badge bg-primary">GET</span></td>
+                    <td><code>/api/books</code></td>
+                    <td>List books with category filtering and keyword search</td>
+                    <td><span class="badge bg-secondary">Authenticated</span></td>
+                </tr>
+                <tr>
+                    <td><span class="badge bg-primary">GET</span></td>
+                    <td><code>/api/books/{id}</code></td>
+                    <td>Get book details and availability count</td>
+                    <td><span class="badge bg-secondary">Authenticated</span></td>
+                </tr>
+                <tr>
+                    <td><span class="badge bg-success">POST</span></td>
+                    <td><code>/api/books</code></td>
+                    <td>Add new book to library catalog</td>
+                    <td><span class="badge bg-dark">Admin</span></td>
+                </tr>
+                <tr>
+                    <td><span class="badge bg-warning text-dark">PUT</span></td>
+                    <td><code>/api/books/{id}</code></td>
+                    <td>Update book title, author, category, or total copies</td>
+                    <td><span class="badge bg-dark">Admin</span></td>
+                </tr>
+                <tr>
+                    <td><span class="badge bg-danger">DELETE</span></td>
+                    <td><code>/api/books/{id}</code></td>
+                    <td>Delete book document from MongoDB</td>
+                    <td><span class="badge bg-dark">Admin</span></td>
+                </tr>
+
+                <!-- Reservations -->
+                <tr>
+                    <td><span class="badge bg-primary">GET</span></td>
+                    <td><code>/api/reservations</code></td>
+                    <td>List active/past book reservations (role-scoped)</td>
+                    <td><span class="badge bg-secondary">Authenticated</span></td>
+                </tr>
+                <tr>
+                    <td><span class="badge bg-success">POST</span></td>
+                    <td><code>/api/reservations</code></td>
+                    <td>Reserve a book atomically decrementing available copies</td>
+                    <td><span class="badge bg-secondary">Authenticated</span></td>
+                </tr>
+                <tr>
+                    <td><span class="badge bg-warning text-dark">PATCH</span></td>
+                    <td><code>/api/reservations/{id}/cancel</code></td>
+                    <td>Cancel reservation atomically incrementing available copies</td>
+                    <td><span class="badge bg-secondary">Authenticated</span></td>
+                </tr>
+
+                <!-- Service Requests -->
+                <tr>
+                    <td><span class="badge bg-primary">GET</span></td>
+                    <td><code>/api/service-requests</code></td>
+                    <td>List service requests (ID card, certificate, hostel, tech support)</td>
+                    <td><span class="badge bg-secondary">Authenticated</span></td>
+                </tr>
+                <tr>
+                    <td><span class="badge bg-success">POST</span></td>
+                    <td><code>/api/service-requests</code></td>
+                    <td>Submit a new service request</td>
+                    <td><span class="badge bg-secondary">Authenticated</span></td>
+                </tr>
+                <tr>
+                    <td><span class="badge bg-warning text-dark">PATCH</span></td>
+                    <td><code>/api/service-requests/{id}/status</code></td>
+                    <td>Approve or reject service request with admin remarks</td>
+                    <td><span class="badge bg-dark">Admin</span></td>
+                </tr>
+
+                <!-- Announcements -->
+                <tr>
+                    <td><span class="badge bg-primary">GET</span></td>
+                    <td><code>/api/announcements</code></td>
+                    <td>List campus announcements with category filter</td>
+                    <td><span class="badge bg-light text-dark border">Public / Authenticated</span></td>
+                </tr>
+                <tr>
+                    <td><span class="badge bg-success">POST</span></td>
+                    <td><code>/api/announcements</code></td>
+                    <td>Publish a new campus announcement</td>
+                    <td><span class="badge bg-dark">Admin</span></td>
+                </tr>
+
+                <!-- Notifications -->
+                <tr>
+                    <td><span class="badge bg-primary">GET</span></td>
+                    <td><code>/api/notifications</code></td>
+                    <td>List in-app notifications for authenticated user</td>
+                    <td><span class="badge bg-secondary">Authenticated</span></td>
+                </tr>
+                <tr>
+                    <td><span class="badge bg-primary">GET</span></td>
+                    <td><code>/api/notifications/unread-count</code></td>
+                    <td>Get unread notifications count (integer)</td>
+                    <td><span class="badge bg-secondary">Authenticated</span></td>
+                </tr>
+                <tr>
+                    <td><span class="badge bg-warning text-dark">PATCH</span></td>
+                    <td><code>/api/notifications/{id}/read</code></td>
+                    <td>Mark notification as read</td>
+                    <td><span class="badge bg-secondary">Authenticated</span></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+

@@ -1,0 +1,259 @@
+@model StudentDashboardDto
+@{
+    ViewData["Title"] = "Student Dashboard";
+    var userInitial = !string.IsNullOrEmpty(Model.User.FullName) ? Model.User.FullName[0].ToString().ToUpper() : "S";
+    var announcements = Model.LatestAnnouncements ?? new List<AnnouncementResponseDto>();
+    var featuredNews = announcements.FirstOrDefault();
+    var otherNews = announcements.Skip(1).Take(2).ToList();
+}
+
+<!-- 3-Column Dribbble Grid -->
+<div class="dribbble-grid">
+    <!-- Column 1: Classes for the day -->
+    <div class="dribbble-card">
+        <div class="dribbble-card-header">
+            <h5 class="dribbble-card-title">Classes for the day</h5>
+            <div class="dribbble-card-tools">
+                <span class="dribbble-tool-icon" title="Search classes"><i class="bi bi-search"></i></span>
+                <span class="dribbble-tool-icon" title="List view"><i class="bi bi-list-task"></i></span>
+            </div>
+        </div>
+
+        <!-- Class Item 1: Mathematics -->
+        <div class="class-item-card">
+            <div class="class-item-top">
+                <h6 class="class-subject-title">Mathematics</h6>
+                <span class="class-date-badge"><i class="bi bi-calendar-event"></i> 5/2/22</span>
+            </div>
+            <div class="class-instructor">
+                <img src="~/images/avatar-prof.svg" alt="Professor" class="class-instructor-avatar" />
+                <span class="class-instructor-name">Professor Joe</span>
+            </div>
+            <p class="class-description">
+                Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et
+            </p>
+        </div>
+
+        <!-- Class Item 2: Physics -->
+        <div class="class-item-card">
+            <div class="class-item-top">
+                <h6 class="class-subject-title">Physics</h6>
+                <span class="class-date-badge"><i class="bi bi-calendar-event"></i> 5/2/22</span>
+            </div>
+            <div class="class-instructor">
+                <img src="~/images/avatar-prof.svg" alt="Professor" class="class-instructor-avatar" />
+                <span class="class-instructor-name">Professor John</span>
+            </div>
+            <p class="class-description">
+                Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et
+            </p>
+        </div>
+
+        <!-- Class Item 3: Chemistry -->
+        <div class="class-item-card mb-0">
+            <div class="class-item-top">
+                <h6 class="class-subject-title">Chemistry</h6>
+                <div class="d-flex align-items-center">
+                    <span class="class-date-badge"><i class="bi bi-calendar-event"></i> 6/3/22</span>
+                    <span class="class-tag-pill">Now</span>
+                </div>
+            </div>
+            <div class="class-instructor">
+                <img src="~/images/avatar-prof.svg" alt="Professor" class="class-instructor-avatar" />
+                <span class="class-instructor-name">Professor Matt</span>
+            </div>
+            <p class="class-description">
+                Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et
+            </p>
+        </div>
+
+        @if (Model.RecentComplaints.Any() || Model.MyReservations.Any())
+        {
+            <div class="mt-3 pt-3 border-top d-flex justify-content-between align-items-center small">
+                <span class="text-muted"><i class="bi bi-shield-check text-primary me-1"></i> @Model.PendingComplaints Complaints Pending</span>
+                <a asp-controller="Complaints" asp-action="Index" class="text-decoration-none fw-semibold text-primary" style="font-size: 0.76rem;">View Campus Tickets &rarr;</a>
+            </div>
+        }
+    </div>
+
+    <!-- Column 2: Stacked Cards (Mark Attendance + My Calendar) -->
+    <div class="d-flex flex-column gap-3">
+        <!-- Card A: Mark Attendance -->
+        <div class="dribbble-card">
+            <div class="dribbble-card-header mb-3">
+                <h5 class="dribbble-card-title">Mark attendance</h5>
+                <span class="dribbble-tool-icon"><i class="bi bi-box-arrow-up-right"></i></span>
+            </div>
+
+            <!-- Subject Selector Pill -->
+            <div class="attendance-pill-select">
+                <span>Mathematics</span>
+                <span class="time-tag">09:00 AM</span>
+            </div>
+
+            <!-- Day Carousel -->
+            <div class="day-carousel">
+                <button type="button" class="day-carousel-btn" id="dayPrev">&lt;</button>
+                <span class="day-carousel-num" data-day="1">1</span>
+                <span class="day-carousel-num active" data-day="2">2</span>
+                <span class="day-carousel-num" data-day="3">3</span>
+                <span class="day-carousel-num" data-day="4">4</span>
+                <span class="day-carousel-num" data-day="5">5</span>
+                <button type="button" class="day-carousel-btn" id="dayNext">&gt;</button>
+            </div>
+
+            <!-- Present Button -->
+            <button type="button" class="btn-present-pill" id="btnMarkPresent" onclick="handleAttendanceClick()">
+                Present
+            </button>
+        </div>
+
+        <!-- Card B: My Calendar -->
+        <div class="dribbble-card flex-grow-1">
+            <div class="dribbble-card-header mb-2">
+                <h5 class="dribbble-card-title">My Calendar</h5>
+                <span class="dribbble-tool-icon"><i class="bi bi-box-arrow-up-right"></i></span>
+            </div>
+
+            <div class="calendar-month-header d-flex justify-content-between align-items-center px-2">
+                <button class="btn btn-sm btn-link text-muted p-0 text-decoration-none" style="font-size: 0.75rem;">&lt;</button>
+                <span class="fw-bold text-dark">March 2026</span>
+                <button class="btn btn-sm btn-link text-muted p-0 text-decoration-none" style="font-size: 0.75rem;">&gt;</button>
+            </div>
+
+            <!-- Mini Calendar Grid -->
+            <div class="mini-calendar-grid">
+                <div class="calendar-cell-head">S</div>
+                <div class="calendar-cell-head">M</div>
+                <div class="calendar-cell-head">T</div>
+                <div class="calendar-cell-head">W</div>
+                <div class="calendar-cell-head">T</div>
+                <div class="calendar-cell-head">F</div>
+                <div class="calendar-cell-head">S</div>
+
+                <!-- Row 1 -->
+                <div class="calendar-cell muted">28</div>
+                <div class="calendar-cell">1</div>
+                <div class="calendar-cell">2</div>
+                <div class="calendar-cell">3</div>
+                <div class="calendar-cell">4</div>
+                <div class="calendar-cell">5</div>
+                <div class="calendar-cell">6</div>
+
+                <!-- Row 2 -->
+                <div class="calendar-cell">7</div>
+                <div class="calendar-cell">8</div>
+                <div class="calendar-cell active-day">9</div>
+                <div class="calendar-cell">10</div>
+                <div class="calendar-cell">11</div>
+                <div class="calendar-cell">12</div>
+                <div class="calendar-cell">13</div>
+
+                <!-- Row 3 -->
+                <div class="calendar-cell">14</div>
+                <div class="calendar-cell">15</div>
+                <div class="calendar-cell">16</div>
+                <div class="calendar-cell event-day">17</div>
+                <div class="calendar-cell">18</div>
+                <div class="calendar-cell">19</div>
+                <div class="calendar-cell">20</div>
+
+                <!-- Row 4 -->
+                <div class="calendar-cell">21</div>
+                <div class="calendar-cell event-day">22</div>
+                <div class="calendar-cell">23</div>
+                <div class="calendar-cell">24</div>
+                <div class="calendar-cell">25</div>
+                <div class="calendar-cell">26</div>
+                <div class="calendar-cell">27</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Column 3: News & Updates -->
+    <div class="dribbble-card">
+        <div class="dribbble-card-header">
+            <h5 class="dribbble-card-title">News &amp; Updates</h5>
+            <span class="dribbble-tool-icon"><i class="bi bi-box-arrow-up-right"></i></span>
+        </div>
+
+        <!-- Featured News Card with 3D Wave Banner -->
+        <div class="news-banner-img-box">
+            <img src="~/images/news-banner.svg" alt="Featured News Banner" class="news-banner-img" />
+        </div>
+
+        <h6 class="news-article-title">
+            @(featuredNews?.Title ?? "Universities to announce exams schedule")
+        </h6>
+        <p class="news-article-excerpt">
+            @(featuredNews != null && featuredNews.Description.Length > 120 
+                ? featuredNews.Description.Substring(0, 120) + "..." 
+                : featuredNews?.Description ?? "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna.")
+        </p>
+
+        <div class="mb-3">
+            @if (featuredNews != null)
+            {
+                <a asp-controller="Announcements" asp-action="Details" asp-route-id="@featuredNews.Id" class="btn-readmore-pill">
+                    Read more &gt;
+                </a>
+            }
+            else
+            {
+                <a asp-controller="Announcements" asp-action="Index" class="btn-readmore-pill">
+                    Read more &gt;
+                </a>
+            }
+        </div>
+
+        <!-- Sub News Items -->
+        <div class="news-sub-list">
+            @if (otherNews.Any())
+            {
+                @foreach (var n in otherNews)
+                {
+                    <a asp-controller="Announcements" asp-action="Details" asp-route-id="@n.Id" class="news-sub-item">
+                        <img src="~/images/avatar-prof.svg" alt="Author" class="news-sub-avatar" />
+                        <p class="news-sub-title text-truncate">@n.Title</p>
+                    </a>
+                }
+            }
+            else
+            {
+                <div class="news-sub-item">
+                    <img src="~/images/avatar-prof.svg" alt="Author" class="news-sub-avatar" />
+                    <p class="news-sub-title text-truncate">Universities to announce fall semester events</p>
+                </div>
+                <div class="news-sub-item">
+                    <img src="~/images/avatar-prof.svg" alt="Author" class="news-sub-avatar" />
+                    <p class="news-sub-title text-truncate">Library extended hours during final project week</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    function handleAttendanceClick() {
+        const btn = document.getElementById('btnMarkPresent');
+        if (!btn) return;
+        btn.textContent = '✓ Recorded';
+        btn.style.backgroundColor = '#16a34a';
+        btn.style.boxShadow = '0 4px 12px rgba(22, 163, 74, 0.35)';
+        setTimeout(() => {
+            btn.textContent = 'Present';
+            btn.style.backgroundColor = '#3b82f6';
+            btn.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.3)';
+        }, 2500);
+    }
+
+    // Day carousel selector click
+    document.querySelectorAll('.day-carousel-num').forEach(el => {
+        el.addEventListener('click', function() {
+            document.querySelectorAll('.day-carousel-num').forEach(c => c.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+</script>
+}

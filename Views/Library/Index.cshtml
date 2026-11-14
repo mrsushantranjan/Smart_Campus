@@ -1,0 +1,195 @@
+@using System.Security.Claims
+@model List<BookResponseDto>
+@{
+    ViewData["Title"] = "Campus Library Catalog";
+    var categories = ViewBag.Categories as List<string> ?? new List<string>();
+    var selectedCategory = ViewBag.SelectedCategory as string;
+    var search = ViewBag.Search as string;
+    var isAdmin = User.IsInRole(UserRoles.Admin);
+    var isStudent = User.IsInRole(UserRoles.Student);
+}
+
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <h2 class="fw-bold text-dark mb-1">Library Catalog &amp; Circulation</h2>
+        <p class="text-muted small mb-0">Browse university textbook inventory, check real-time availability, and reserve copies</p>
+    </div>
+    <div class="d-flex gap-2">
+        @if (isStudent)
+        {
+            <a asp-action="MyReservations" class="btn btn-sm btn-outline-primary px-3 shadow-sm">
+                <i class="bi bi-journal-check me-1"></i> My Reserved Books
+            </a>
+        }
+        @if (isAdmin)
+        {
+            <a asp-action="Reservations" class="btn btn-sm btn-outline-secondary px-3">
+                <i class="bi bi-journal-bookmark me-1"></i> All Reservations
+            </a>
+            <a asp-action="CreateBook" class="btn btn-sm btn-primary px-3 shadow-sm">
+                <i class="bi bi-plus-lg me-1"></i> Add New Book
+            </a>
+        }
+    </div>
+</div>
+
+<!-- Search & Category Filters -->
+<div class="sc-card p-3 mb-4">
+    <form method="get" asp-action="Index" class="row g-2 align-items-center">
+        <div class="col-md-5">
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-search"></i></span>
+                <input type="text" name="search" value="@search" class="form-control border-start-0" placeholder="Search by title, author, or ISBN..." />
+            </div>
+        </div>
+        <div class="col-sm-4 col-md-4">
+            <select name="category" class="form-select form-select-sm" onchange="this.form.submit()">
+                <option value="">-- All Categories --</option>
+                @foreach (var cat in categories)
+                {
+                    <option value="@cat" selected="@(selectedCategory == cat)">@cat</option>
+                }
+            </select>
+        </div>
+        <div class="col-sm-3 col-md-3 d-flex gap-1">
+            <button type="submit" class="btn btn-sm btn-dark w-100">Find</button>
+            @if (!string.IsNullOrEmpty(search) || !string.IsNullOrEmpty(selectedCategory))
+            {
+                <a asp-action="Index" class="btn btn-sm btn-outline-secondary">Clear</a>
+            }
+        </div>
+    </form>
+</div>
+
+<!-- Book Grid / Table -->
+<div class="sc-card">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light small text-uppercase text-muted">
+                <tr>
+                    <th>Book Details</th>
+                    <th>Author</th>
+                    <th>Category</th>
+                    <th>ISBN</th>
+                    <th>Availability</th>
+                    <th class="text-end">Circulation Action</th>
+                </tr>
+            </thead>
+            <tbody class="small">
+                @if (Model.Any())
+                {
+                    @foreach (var b in Model)
+                    {
+                        var inStock = b.AvailableCopies > 0;
+                        <tr>
+                            <td>
+                                <div class="fw-bold text-dark">@b.Title</div>
+                                @if (!string.IsNullOrEmpty(b.Description))
+                                {
+                                    <div class="text-muted text-truncate" style="max-width: 280px; font-size: 0.75rem;">@b.Description</div>
+                                }
+                            </td>
+                            <td class="text-secondary">@b.Author</td>
+                            <td><span class="badge bg-light text-dark border">@b.Category</span></td>
+                            <td><code class="text-muted">@b.ISBN</code></td>
+                            <td>
+                                @if (inStock)
+                                {
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle">
+                                        @b.AvailableCopies / @b.TotalCopies Available
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle">
+                                        Out of Stock (0/@b.TotalCopies)
+                                    </span>
+                                }
+                            </td>
+                            <td class="text-end">
+                                @if (isStudent)
+                                {
+                                    @if (inStock)
+                                    {
+                                        <form asp-action="Reserve" method="post" class="d-inline reserve-book-form" data-book-id="@b.Id" data-title="@b.Title">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="bookId" value="@b.Id" />
+                                            <button type="submit" class="btn btn-sm btn-primary px-3">
+                                                Reserve
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <button class="btn btn-sm btn-outline-secondary" disabled>Waitlist</button>
+                                    }
+                                }
+                                @if (isAdmin)
+                                {
+                                    <a asp-action="EditBook" asp-route-id="@b.Id" class="btn btn-sm btn-outline-secondary me-1">Edit</a>
+                                    <form asp-action="DeleteBook" asp-route-id="@b.Id" method="post" class="d-inline">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Remove book &quot;@b.Title&quot; from catalog?');">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted">
+                            <i class="bi bi-book fs-2 d-block mb-2 text-secondary"></i>
+                            No books matched the current filters.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    document.querySelectorAll('.reserve-book-form').forEach(form => {
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const bookId = this.dataset.bookId;
+            const title = this.dataset.title;
+            if (!confirm('Confirm book reservation for "' + title + '"?')) return;
+
+            const submitBtn = this.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Reserving...';
+            }
+
+            try {
+                const res = await fetch('/api/reservations', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ bookId: bookId })
+                });
+
+                if (res.ok) {
+                    window.location.href = '/Library/MyReservations';
+                } else {
+                    const err = await res.json().catch(() => ({}));
+                    alert(err.message || 'Unable to complete reservation at this time.');
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Reserve';
+                    }
+                }
+            } catch (err) {
+                // If network/API issue, fall back to standard form submit
+                this.submit();
+            }
+        });
+    });
+</script>
+}
+

@@ -1,0 +1,120 @@
+@{
+    ViewData["Title"] = "Smart Campus Service Portal";
+}
+
+<div class="row justify-content-center py-4">
+    <div class="col-xl-10">
+        <!-- Hero Header -->
+        <div class="text-center mb-5">
+            <span class="badge bg-primary-subtle text-primary px-3 py-2 rounded-pill fw-semibold mb-3">
+                <i class="bi bi-mortarboard-fill me-1"></i> Unified Campus Operations Platform
+            </span>
+            <h1 class="display-6 fw-bold text-dark tracking-tight mb-2">Smart Campus Service Portal</h1>
+            <p class="lead text-muted mx-auto" style="max-width: 650px;">
+                C# ASP.NET Core MVC with native MongoDB persistence. Comprehensive complaint tracking, automated library book reservations, multi-category service requests, and campus announcements.
+            </p>
+            <div class="d-flex justify-content-center gap-3 mt-4">
+                <a asp-controller="Account" asp-action="Login" class="btn btn-primary px-4 py-2 fw-medium shadow-sm">
+                    <i class="bi bi-box-arrow-in-right me-1"></i> Sign In to Portal
+                </a>
+                <a asp-controller="Library" asp-action="Index" class="btn btn-outline-secondary px-4 py-2 fw-medium">
+                    <i class="bi bi-book me-1"></i> Browse Library Catalog
+                </a>
+            </div>
+        </div>
+
+        <!-- Role Access Cards -->
+        <div class="row g-4 mb-5">
+            <div class="col-md-4">
+                <div class="sc-card h-100 p-4 border transition-hover">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="rounded-3 p-2 bg-primary-subtle text-primary">
+                            <i class="bi bi-person-badge fs-4"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-0">Student Portal</h5>
+                            <span class="text-muted small">Registered Students</span>
+                        </div>
+                    </div>
+                    <p class="text-muted small mb-4">
+                        Submit service requests, lodge complaints with department assignment, search and reserve library books, and read announcements.
+                    </p>
+                    <a asp-controller="Account" asp-action="Login" class="btn btn-sm btn-outline-primary w-100">
+                        Student Access &rarr;
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="sc-card h-100 p-4 border transition-hover">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="rounded-3 p-2 bg-success-subtle text-success">
+                            <i class="bi bi-person-workspace fs-4"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-0">Faculty Portal</h5>
+                            <span class="text-muted small">Professors &amp; Staff</span>
+                        </div>
+                    </div>
+                    <p class="text-muted small mb-4">
+                        Review department complaints, update ticket statuses with resolution notes, submit internal service requests, and browse library inventory.
+                    </p>
+                    <a asp-controller="Account" asp-action="Login" class="btn btn-sm btn-outline-success w-100">
+                        Faculty Access &rarr;
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="sc-card h-100 p-4 border transition-hover">
+                    <div class="d-flex align-items-center gap-3 mb-3">
+                        <div class="rounded-3 p-2 bg-dark-subtle text-dark">
+                            <i class="bi bi-shield-lock-fill fs-4"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-0">Administrator</h5>
+                            <span class="text-muted small">Operations &amp; Security</span>
+                        </div>
+                    </div>
+                    <p class="text-muted small mb-4">
+                        Manage users and departments, track system KPIs with Chart.js analytics, approve service requests, manage library catalog, and broadcast announcements.
+                    </p>
+                    <a asp-controller="Account" asp-action="Login" class="btn btn-sm btn-outline-dark w-100">
+                        Admin Access &rarr;
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Architecture & Tech Stack Highlights -->
+        <div class="sc-card p-4">
+            <h5 class="fw-bold mb-3"><i class="bi bi-layers-fill text-primary me-2"></i>Technical Architecture</h5>
+            <div class="row g-3 small text-muted">
+                <div class="col-md-3">
+                    <div class="p-3 bg-light rounded-3">
+                        <div class="fw-bold text-dark mb-1">Database Layer</div>
+                        <div>MongoDB <code>smart_campus_db</code> via <code>MongoDB.Driver</code> with native BSON ObjectId references &amp; atomic inventory updates.</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="p-3 bg-light rounded-3">
+                        <div class="fw-bold text-dark mb-1">Backend Framework</div>
+                        <div>ASP.NET Core MVC + ASP.NET Core Web API on .NET 8 with Dependency Injection and Service Layer separation.</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="p-3 bg-light rounded-3">
+                        <div class="fw-bold text-dark mb-1">Security &amp; Auth</div>
+                        <div>ASP.NET Core Cookie Authentication with secure <code>PasswordHasher</code>, anti-forgery tokens, and Role-Based Access Control.</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="p-3 bg-light rounded-3">
+                        <div class="fw-bold text-dark mb-1">Design System</div>
+                        <div>Linear/Stripe-inspired minimal SaaS layout, Bootstrap 5, Bootstrap Icons, Chart.js, and Inter typography.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

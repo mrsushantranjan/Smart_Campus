@@ -1,0 +1,108 @@
+@model List<ApplicationUser>
+@{
+    ViewData["Title"] = "User Management";
+    var selectedRole = ViewBag.SelectedRole as string;
+}
+
+<div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
+    <div>
+        <h2 class="fw-bold text-dark mb-1">User Directory</h2>
+        <p class="text-muted small mb-0">Manage registered students, faculty, and administrative accounts</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-controller="Account" asp-action="Register" class="btn btn-sm btn-primary px-3 shadow-sm">
+            <i class="bi bi-person-plus me-1"></i> Register New User
+        </a>
+    </div>
+</div>
+
+<!-- Filters Bar -->
+<div class="sc-card p-3 mb-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+        <div class="d-flex align-items-center gap-2">
+            <span class="small fw-semibold text-muted">Role Filter:</span>
+            <div class="btn-group btn-group-sm" role="group">
+                <a asp-action="Users" class="btn @(string.IsNullOrEmpty(selectedRole) ? "btn-dark" : "btn-outline-secondary")">All</a>
+                <a asp-action="Users" asp-route-role="@UserRoles.Student" class="btn @(selectedRole == UserRoles.Student ? "btn-dark" : "btn-outline-secondary")">Students</a>
+                <a asp-action="Users" asp-route-role="@UserRoles.Faculty" class="btn @(selectedRole == UserRoles.Faculty ? "btn-dark" : "btn-outline-secondary")">Faculty</a>
+                <a asp-action="Users" asp-route-role="@UserRoles.Admin" class="btn @(selectedRole == UserRoles.Admin ? "btn-dark" : "btn-outline-secondary")">Admins</a>
+            </div>
+        </div>
+        <div class="small text-muted">
+            Total records: <strong class="text-dark">@Model.Count</strong>
+        </div>
+    </div>
+</div>
+
+<!-- Users Table -->
+<div class="sc-card">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light small text-uppercase text-muted">
+                <tr>
+                    <th>User</th>
+                    <th>Role</th>
+                    <th>Identifier / Phone</th>
+                    <th>Status</th>
+                    <th>Joined</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="small">
+                @if (Model.Any())
+                {
+                    @foreach (var u in Model)
+                    {
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="user-avatar" style="width: 32px; height: 32px; font-size: 0.85rem;">
+                                        @(u.FullName.Length > 0 ? u.FullName[0].ToString().ToUpper() : "U")
+                                    </div>
+                                    <div>
+                                        <div class="fw-semibold text-dark">@u.FullName</div>
+                                        <div class="text-muted" style="font-size: 0.75rem;">@u.Email</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge @(u.Role == UserRoles.Admin ? "bg-dark" : (u.Role == UserRoles.Faculty ? "bg-success-subtle text-success border border-success-subtle" : "bg-primary-subtle text-primary border border-primary-subtle"))">
+                                    @u.Role
+                                </span>
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(u.StudentId))
+                                {
+                                    <div class="font-monospace">@u.StudentId</div>
+                                }
+                                <div class="text-muted" style="font-size: 0.75rem;">@(u.PhoneNumber ?? "No phone")</div>
+                            </td>
+                            <td>
+                                <span class="badge @(u.IsActive ? "bg-success-subtle text-success" : "bg-danger-subtle text-danger")">
+                                    @(u.IsActive ? "Active" : "Suspended")
+                                </span>
+                            </td>
+                            <td class="text-muted">@u.CreatedAt.ToString("MMM dd, yyyy")</td>
+                            <td class="text-end">
+                                <form asp-action="ToggleUserStatus" asp-route-id="@u.Id" method="post" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm @(u.IsActive ? "btn-outline-danger" : "btn-outline-success")"
+                                            onclick="return confirm('Change active status for this user?');">
+                                        @(u.IsActive ? "Suspend" : "Activate")
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-muted">No users found matching the filter.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+

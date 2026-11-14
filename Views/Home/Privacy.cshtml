@@ -1,0 +1,29 @@
+@{
+    ViewData["Title"] = "Privacy & Data Policy";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="mb-4">
+            <h2 class="fw-bold text-dark mb-1">Privacy &amp; Data Handling</h2>
+            <p class="text-muted small mb-0">How the Smart Campus Service Portal stores and secures campus records</p>
+        </div>
+
+        <div class="sc-card p-4">
+            <h5 class="fw-bold text-dark mb-2">Campus Data Protection</h5>
+            <p class="text-muted small mb-4" style="line-height: 1.7;">
+                The Smart Campus Service Portal processes academic records, complaint tickets, and library circulation requests solely for operational campus management. Password credentials are salted and hashed using cryptographic ASP.NET Core PasswordHasher, and plaintext credentials are never stored.
+            </p>
+
+            <h5 class="fw-bold text-dark mb-2">MongoDB Persistence</h5>
+            <p class="text-muted small mb-4" style="line-height: 1.7;">
+                All portal documents are securely stored in the dedicated MongoDB database (<code>smart_campus_db</code>). Role-Based Access Control (RBAC) ensures students can only view and manage their own complaints and service applications, while faculty and administrators possess elevated department oversight.
+            </p>
+
+            <div class="pt-3 border-top d-flex justify-content-between text-muted small">
+                <span>Smart Campus Enterprise Portal</span>
+                <a asp-action="Index" class="text-decoration-none">&larr; Return to Dashboard</a>
+            </div>
+        </div>
+    </div>
+</div>
