@@ -7,20 +7,8 @@ using SmartCampus.Services;
 namespace SmartCampus.Controllers;
 
 [Authorize(Roles = UserRoles.Faculty)]
-public class FacultyController : Controller
+public class FacultyController(IReportService reportService) : Controller
 {
-    private readonly IReportService _reportService;
-
-    public FacultyController(IReportService reportService)
-    {
-        _reportService = reportService;
-    }
-
-    public async Task<IActionResult> Index()
-    {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-        var data = await _reportService.GetFacultyDashboardDataAsync(userId);
-        return View(data);
-    }
+    public async Task<IActionResult> Index() =>
+        View(await reportService.GetFacultyDashboardDataAsync(User.FindFirstValue(ClaimTypes.NameIdentifier)!));
 }
-

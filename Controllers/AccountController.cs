@@ -9,133 +9,88 @@ using SmartCampus.Services;
 
 namespace SmartCampus.Controllers;
 
-public class AccountController : Controller
+public class AccountController(IAuthService authService) : Controller
 {
-    private readonly IAuthService _authService;
+    private string? CurrentUserId => User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-    public AccountController(IAuthService authService)
-    {
-        _authService = authService;
-    }
-
-    [HttpGet]
-    [AllowAnonymous]
+    [HttpGet, AllowAnonymous]
     public IActionResult Login(string? returnUrl = null)
     {
         ViewData["ReturnUrl"] = returnUrl;
         return View(new LoginRequestDto());
     }
 
-    [HttpPost]
-    [AllowAnonymous]
-    [ValidateAntiForgeryToken]
+    [HttpPost, AllowAnonymous, ValidateAntiForgeryToken]
     public async Task<IActionResult> Login(LoginRequestDto model, string? returnUrl = null)
     {
-        if (!ModelState.IsValid)
-        {
-            return View(model);
-        }
+        if (!ModelState.IsValid) return View(model);
 
         try
         {
-            var result = await _authService.LoginAsync(model.Email, model.Password);
-            if (!result.Succeeded)
+            var res = await authService.LoginAsync(model.Email, model.Password);
+            if (!res.Succeeded)
             {
-                ModelState.AddModelError(string.Empty, result.Error ?? "Invalid login attempt.");
+                ModelState.AddModelError(string.Empty, res.Error ?? "Invalid login attempt.");
                 return View(model);
             }
 
-            var user = result.User!;
-            var claims = new List<Claim>
-            {
-                new(ClaimTypes.NameIdentifier, user.Id),
-                new(ClaimTypes.Name, user.FullName),
-                new(ClaimTypes.Email, user.Email),
-                new(ClaimTypes.Role, user.Role),
-                new("DepartmentId", user.DepartmentId ?? ""),
-                new("DepartmentName", user.DepartmentName ?? "")
-            };
+            var u = res.User!;
+            List<Claim> claims = [
+                new(ClaimTypes.NameIdentifier, u.Id),
+                new(ClaimTypes.Name, u.FullName),
+                new(ClaimTypes.Email, u.Email),
+                new(ClaimTypes.Role, u.Role),
+                new("DepartmentId", u.DepartmentId ?? ""),
+                new("DepartmentName", u.DepartmentName ?? "")
+            ];
 
             var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
-            var authProperties = new AuthenticationProperties
-            {
-                IsPersistent = model.RememberMe,
-                ExpiresUtc = DateTimeOffset.UtcNow.AddDays(7)
-            };
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity),
+                new AuthenticationProperties { IsPersistent = model.RememberMe, ExpiresUtc = DateTimeOffset.UtcNow.AddDays(7) });
 
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(identity), authProperties);
-
-            if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
-            {
-                return Redirect(returnUrl);
-            }
-
-            return RedirectToRoleDashboard(user.Role);
+            return !string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl) ? Redirect(returnUrl) : RedirectToRoleDashboard(u.Role);
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"[LOGIN ERROR] {ex}");
             ModelState.AddModelError(string.Empty, $"Authentication error: {ex.Message}");
             return View(model);
         }
     }
 
-    [HttpGet]
-    [AllowAnonymous]
+    [HttpGet, AllowAnonymous]
     public async Task<IActionResult> Register()
     {
-        try
-        {
-            ViewBag.Departments = await _authService.GetDepartmentsAsync();
-        }
-        catch
-        {
-            ViewBag.Departments = new List<Department>();
-        }
+        ViewBag.Departments = await SafeGetDepartmentsAsync();
         return View(new RegisterRequestDto { Role = UserRoles.Student });
     }
 
-    [HttpPost]
-    [AllowAnonymous]
-    [ValidateAntiForgeryToken]
+    [HttpPost, AllowAnonymous, ValidateAntiForgeryToken]
     public async Task<IActionResult> Register(RegisterRequestDto model)
     {
-        if (!ModelState.IsValid)
-        {
-            try
-            {
-                ViewBag.Departments = await _authService.GetDepartmentsAsync();
-            }
-            catch
-            {
-                ViewBag.Departments = new List<Department>();
-            }
-            return View(model);
-        }
+        if (!ModelState.IsValid) { ViewBag.Departments = await SafeGetDepartmentsAsync(); return View(model); }
 
         try
         {
-            var result = await _authService.RegisterAsync(model);
-            if (!result.Succeeded)
+            var res = await authService.RegisterAsync(model);
+            if (!res.Succeeded)
             {
-                ModelState.AddModelError(string.Empty, result.Error ?? "Registration failed.");
-                try { ViewBag.Departments = await _authService.GetDepartmentsAsync(); } catch { ViewBag.Departments = new List<Department>(); }
+                ModelState.AddModelError(string.Empty, res.Error ?? "Registration failed.");
+                ViewBag.Departments = await SafeGetDepartmentsAsync();
                 return View(model);
             }
 
             TempData["SuccessMessage"] = "Registration successful! Please sign in with your credentials.";
             return RedirectToAction(nameof(Login));
         }
-        catch (Exception)
+        catch
         {
-            ModelState.AddModelError(string.Empty, "Unable to register account. Ensure MongoDB is running locally on port 27017.");
-            ViewBag.Departments = new List<Department>();
+            ModelState.AddModelError(string.Empty, "Unable to register account. Ensure MongoDB is running.");
+            ViewBag.Departments = await SafeGetDepartmentsAsync();
             return View(model);
         }
     }
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
+    [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Logout()
     {
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
@@ -143,75 +98,49 @@ public class AccountController : Controller
         return RedirectToAction(nameof(Login));
     }
 
-    [HttpGet]
-    [Authorize]
+    [HttpGet, Authorize]
     public async Task<IActionResult> Profile()
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrWhiteSpace(userId)) return RedirectToAction(nameof(Login));
+        if (CurrentUserId is not { } uid) return RedirectToAction(nameof(Login));
+        if (await authService.GetUserByIdAsync(uid) is not { } u) return NotFound();
 
-        var user = await _authService.GetUserByIdAsync(userId);
-        if (user == null) return NotFound();
-
-        ViewBag.Departments = await _authService.GetDepartmentsAsync();
-        ViewBag.DepartmentName = user.DepartmentName ?? "General / Unassigned";
-        var model = new UpdateProfileDto
-        {
-            FullName = user.FullName,
-            PhoneNumber = user.PhoneNumber,
-            StudentId = user.StudentId,
-            DepartmentId = user.DepartmentId
-        };
-        ViewBag.User = user;
-
-        return View(model);
+        ViewBag.Departments = await authService.GetDepartmentsAsync();
+        ViewBag.DepartmentName = u.DepartmentName ?? "General / Unassigned";
+        ViewBag.User = u;
+        return View(new UpdateProfileDto { FullName = u.FullName, PhoneNumber = u.PhoneNumber, StudentId = u.StudentId, DepartmentId = u.DepartmentId });
     }
 
-    [HttpPost]
-    [Authorize]
-    [ValidateAntiForgeryToken]
+    [HttpPost, Authorize, ValidateAntiForgeryToken]
     public async Task<IActionResult> Profile(UpdateProfileDto model)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrWhiteSpace(userId)) return RedirectToAction(nameof(Login));
+        if (CurrentUserId is not { } uid) return RedirectToAction(nameof(Login));
 
         if (!ModelState.IsValid)
         {
-            ViewBag.Departments = await _authService.GetDepartmentsAsync();
-            var currentUser = await _authService.GetUserByIdAsync(userId);
-            ViewBag.User = currentUser;
-            ViewBag.DepartmentName = currentUser?.DepartmentName ?? "General / Unassigned";
+            var curr = await authService.GetUserByIdAsync(uid);
+            ViewBag.Departments = await authService.GetDepartmentsAsync();
+            ViewBag.User = curr;
+            ViewBag.DepartmentName = curr?.DepartmentName ?? "General / Unassigned";
             return View(model);
         }
 
-        var success = await _authService.UpdateProfileAsync(userId, model);
-        if (success)
-        {
-            TempData["SuccessMessage"] = "Profile updated successfully.";
-        }
-        else
-        {
-            TempData["ErrorMessage"] = "Failed to update profile.";
-        }
-
+        var ok = await authService.UpdateProfileAsync(uid, model);
+        TempData[ok ? "SuccessMessage" : "ErrorMessage"] = ok ? "Profile updated successfully." : "Failed to update profile.";
         return RedirectToAction(nameof(Profile));
     }
 
     [HttpGet]
-    public IActionResult AccessDenied()
+    public IActionResult AccessDenied() => View();
+
+    private async Task<List<Department>> SafeGetDepartmentsAsync()
     {
-        return View();
+        try { return await authService.GetDepartmentsAsync(); } catch { return []; }
     }
 
-    private IActionResult RedirectToRoleDashboard(string? role = null)
+    private IActionResult RedirectToRoleDashboard(string? role = null) => (role ?? User.FindFirstValue(ClaimTypes.Role)) switch
     {
-        var userRole = role ?? User.FindFirstValue(ClaimTypes.Role);
-        return userRole switch
-        {
-            UserRoles.Admin => RedirectToAction("Index", "Admin"),
-            UserRoles.Faculty => RedirectToAction("Index", "Faculty"),
-            _ => RedirectToAction("Index", "Student")
-        };
-    }
+        UserRoles.Admin => RedirectToAction("Index", "Admin"),
+        UserRoles.Faculty => RedirectToAction("Index", "Faculty"),
+        _ => RedirectToAction("Index", "Student")
+    };
 }
-

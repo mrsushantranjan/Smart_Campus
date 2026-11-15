@@ -5,63 +5,32 @@ using SmartCampus.Services;
 
 namespace SmartCampus.Controllers.Api;
 
-[ApiController]
-[Route("api/reservations")]
-[Produces("application/json")]
-public class ReservationsApiController : ControllerBase
+[ApiController, Route("api/reservations"), Produces("application/json")]
+public class ReservationsApiController(ILibraryService libraryService) : ControllerBase
 {
-    private readonly ILibraryService _libraryService;
-
-    public ReservationsApiController(ILibraryService libraryService)
-    {
-        _libraryService = libraryService;
-    }
+    private string? GetEffectiveUser(string? uid) => uid ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
 
     [HttpGet]
     [ProducesResponseType(typeof(List<ReservationResponseDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAll([FromQuery] string? userId, [FromQuery] string? status)
-    {
-        var list = await _libraryService.GetReservationsAsync(userId, status);
-        return Ok(list);
-    }
+    public async Task<IActionResult> GetAll([FromQuery] string? userId, [FromQuery] string? status) =>
+        Ok(await libraryService.GetReservationsAsync(userId, status));
 
     [HttpPost]
-    [ProducesResponseType(typeof(ReservationResponseDto), StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ReservationResponseDto), StatusCodes.Status201Created), ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Create([FromBody] CreateReservationDto dto, [FromQuery] string? userId)
     {
         if (!ModelState.IsValid) return BadRequest(ModelState);
-
-        var effectiveUserId = userId ?? User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrWhiteSpace(effectiveUserId))
-        {
-            return BadRequest(new { message = "UserId is required (either via authentication cookie or userId query parameter)." });
-        }
-
-        var result = await _libraryService.ReserveBookAsync(effectiveUserId, dto.BookId);
-        if (!result.Succeeded)
-        {
-            return BadRequest(new { message = result.Error });
-        }
-
-        return Created($"/api/reservations/{result.Reservation!.Id}", result.Reservation);
+        if (GetEffectiveUser(userId) is not { } uid) return BadRequest(new { message = "UserId is required." });
+        var res = await libraryService.ReserveBookAsync(uid, dto.BookId);
+        return res.Succeeded ? Created($"/api/reservations/{res.Reservation!.Id}", res.Reservation) : BadRequest(new { message = res.Error });
     }
 
     [HttpDelete("{id}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status200OK), ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Cancel(string id, [FromQuery] string? userId)
     {
-        var effectiveUserId = userId ?? User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "";
-        var isAdmin = User.IsInRole("Admin") || string.IsNullOrWhiteSpace(effectiveUserId);
-
-        var result = await _libraryService.CancelReservationAsync(id, effectiveUserId, isAdmin);
-        if (!result.Succeeded)
-        {
-            return BadRequest(new { message = result.Error });
-        }
-        return Ok(new { message = "Reservation cancelled successfully." });
+        var uid = GetEffectiveUser(userId) ?? "";
+        var res = await libraryService.CancelReservationAsync(id, uid, User.IsInRole("Admin") || string.IsNullOrWhiteSpace(uid));
+        return res.Succeeded ? Ok(new { message = "Reservation cancelled successfully." }) : BadRequest(new { message = res.Error });
     }
 }
-

@@ -1,3 +1,4 @@
+using MongoDB.Bson;
 using MongoDB.Driver;
 using SmartCampus.Data;
 using SmartCampus.DTOs;
@@ -5,69 +6,37 @@ using SmartCampus.Models;
 
 namespace SmartCampus.Services;
 
-public class ComplaintService : IComplaintService
+public class ComplaintService(MongoDbContext context, INotificationService notificationService) : IComplaintService
 {
-    private readonly MongoDbContext _context;
-    private readonly INotificationService _notificationService;
-
-    public ComplaintService(MongoDbContext context, INotificationService notificationService)
-    {
-        _context = context;
-        _notificationService = notificationService;
-    }
-
     public async Task<List<ComplaintResponseDto>> GetComplaintsAsync(string? userId = null, string? status = null, string? departmentId = null, string? search = null)
     {
-        var builder = Builders<Complaint>.Filter;
-        var filter = builder.Empty;
-
-        if (!string.IsNullOrWhiteSpace(userId))
-        {
-            filter &= builder.Eq(c => c.UserId, userId);
-        }
-
-        if (!string.IsNullOrWhiteSpace(status))
-        {
-            filter &= builder.Eq(c => c.Status, status);
-        }
-
-        if (!string.IsNullOrWhiteSpace(departmentId))
-        {
-            filter &= builder.Eq(c => c.DepartmentId, departmentId);
-        }
-
+        var b = Builders<Complaint>.Filter;
+        var filter = b.Empty;
+        if (!string.IsNullOrWhiteSpace(userId)) filter &= b.Eq(c => c.UserId, userId);
+        if (!string.IsNullOrWhiteSpace(status)) filter &= b.Eq(c => c.Status, status);
+        if (!string.IsNullOrWhiteSpace(departmentId)) filter &= b.Eq(c => c.DepartmentId, departmentId);
         if (!string.IsNullOrWhiteSpace(search))
         {
-            var searchLower = search.Trim().ToLower();
-            filter &= builder.Or(
-                builder.Regex(c => c.Title, new MongoDB.Bson.BsonRegularExpression(searchLower, "i")),
-                builder.Regex(c => c.Category, new MongoDB.Bson.BsonRegularExpression(searchLower, "i")),
-                builder.Regex(c => c.DepartmentName, new MongoDB.Bson.BsonRegularExpression(searchLower, "i"))
-            );
+            var reg = new BsonRegularExpression(search.Trim().ToLower(), "i");
+            filter &= b.Or(b.Regex(c => c.Title, reg), b.Regex(c => c.Category, reg), b.Regex(c => c.DepartmentName, reg));
         }
 
-        var complaints = await _context.Complaints.Find(filter)
-            .SortByDescending(c => c.CreatedAt)
-            .ToListAsync();
-
+        var complaints = await context.Complaints.Find(filter).SortByDescending(c => c.CreatedAt).ToListAsync();
         return complaints.Select(MapComplaint).ToList();
     }
 
     public async Task<ComplaintResponseDto?> GetComplaintByIdAsync(string id)
     {
-        var complaint = await _context.Complaints.Find(c => c.Id == id).FirstOrDefaultAsync();
-        if (complaint == null) return null;
-
-        var history = await GetComplaintHistoryAsync(id);
+        if (await context.Complaints.Find(c => c.Id == id).FirstOrDefaultAsync() is not { } complaint) return null;
         var dto = MapComplaint(complaint);
-        dto.History = history;
+        dto.History = await GetComplaintHistoryAsync(id);
         return dto;
     }
 
     public async Task<ComplaintResponseDto> CreateComplaintAsync(string userId, CreateComplaintDto dto, string? imageUrl = null)
     {
-        var user = await _context.Users.Find(u => u.Id == userId).FirstOrDefaultAsync();
-        var dept = await _context.Departments.Find(d => d.Id == dto.DepartmentId).FirstOrDefaultAsync();
+        var user = await context.Users.Find(u => u.Id == userId).FirstOrDefaultAsync();
+        var dept = await context.Departments.Find(d => d.Id == dto.DepartmentId).FirstOrDefaultAsync();
 
         var complaint = new Complaint
         {
@@ -84,11 +53,9 @@ public class ComplaintService : IComplaintService
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
+        await context.Complaints.InsertOneAsync(complaint);
 
-        await _context.Complaints.InsertOneAsync(complaint);
-
-        // Add initial history entry
-        var history = new ComplaintHistory
+        await context.ComplaintHistory.InsertOneAsync(new ComplaintHistory
         {
             ComplaintId = complaint.Id,
             UpdatedBy = complaint.UserName,
@@ -96,26 +63,20 @@ public class ComplaintService : IComplaintService
             NewStatus = ComplaintStatuses.Pending,
             Remarks = "Complaint submitted by student.",
             CreatedAt = DateTime.UtcNow
-        };
-        await _context.ComplaintHistory.InsertOneAsync(history);
+        });
 
-        // Notify student of successful submission
-        await _notificationService.CreateNotificationAsync(
-            userId,
-            "Complaint Submitted",
-            $"Your complaint '{complaint.Title}' has been registered and is pending department review."
-        );
+        await notificationService.CreateNotificationAsync(
+            userId, "Complaint Submitted", $"Your complaint '{complaint.Title}' has been registered and is pending department review.");
 
         return MapComplaint(complaint);
     }
 
     public async Task<bool> UpdateComplaintAsync(string id, UpdateComplaintDto dto)
     {
-        var complaint = await _context.Complaints.Find(c => c.Id == id).FirstOrDefaultAsync();
+        var complaint = await context.Complaints.Find(c => c.Id == id).FirstOrDefaultAsync();
         if (complaint == null) return false;
 
-        var dept = await _context.Departments.Find(d => d.Id == dto.DepartmentId).FirstOrDefaultAsync();
-
+        var dept = await context.Departments.Find(d => d.Id == dto.DepartmentId).FirstOrDefaultAsync();
         var update = Builders<Complaint>.Update
             .Set(c => c.Title, dto.Title.Trim())
             .Set(c => c.Category, dto.Category.Trim())
@@ -128,105 +89,59 @@ public class ComplaintService : IComplaintService
         if (dto.AssignedTo != null) update = update.Set(c => c.AssignedTo, dto.AssignedTo);
         if (dto.ResolutionNotes != null) update = update.Set(c => c.ResolutionNotes, dto.ResolutionNotes);
 
-        var result = await _context.Complaints.UpdateOneAsync(c => c.Id == id, update);
-        return result.ModifiedCount > 0;
+        return (await context.Complaints.UpdateOneAsync(c => c.Id == id, update)).ModifiedCount > 0;
     }
 
     public async Task<bool> UpdateComplaintStatusAsync(string id, string updatedBy, UpdateComplaintStatusDto dto)
     {
-        var complaint = await _context.Complaints.Find(c => c.Id == id).FirstOrDefaultAsync();
+        var complaint = await context.Complaints.Find(c => c.Id == id).FirstOrDefaultAsync();
         if (complaint == null) return false;
 
-        var prevStatus = complaint.Status;
+        var update = Builders<Complaint>.Update.Set(c => c.Status, dto.Status).Set(c => c.UpdatedAt, DateTime.UtcNow);
+        if (!string.IsNullOrWhiteSpace(dto.AssignedTo)) update = update.Set(c => c.AssignedTo, dto.AssignedTo);
+        if (!string.IsNullOrWhiteSpace(dto.ResolutionNotes)) update = update.Set(c => c.ResolutionNotes, dto.ResolutionNotes);
 
-        var update = Builders<Complaint>.Update
-            .Set(c => c.Status, dto.Status)
-            .Set(c => c.UpdatedAt, DateTime.UtcNow);
+        await context.Complaints.UpdateOneAsync(c => c.Id == id, update);
 
-        if (!string.IsNullOrWhiteSpace(dto.AssignedTo))
-        {
-            update = update.Set(c => c.AssignedTo, dto.AssignedTo);
-        }
-
-        if (!string.IsNullOrWhiteSpace(dto.ResolutionNotes))
-        {
-            update = update.Set(c => c.ResolutionNotes, dto.ResolutionNotes);
-        }
-
-        await _context.Complaints.UpdateOneAsync(c => c.Id == id, update);
-
-        // Add history record
-        var history = new ComplaintHistory
+        await context.ComplaintHistory.InsertOneAsync(new ComplaintHistory
         {
             ComplaintId = id,
             UpdatedBy = updatedBy,
-            PreviousStatus = prevStatus,
+            PreviousStatus = complaint.Status,
             NewStatus = dto.Status,
-            Remarks = string.IsNullOrWhiteSpace(dto.Remarks) ? $"Status updated to {dto.Status}" : dto.Remarks,
+            Remarks = string.IsNullOrWhiteSpace(dto.Remarks) ? $"Status updated to {dto.Status}" : dto.Remarks!,
             CreatedAt = DateTime.UtcNow
-        };
-        await _context.ComplaintHistory.InsertOneAsync(history);
+        });
 
-        // Notify user of status update
-        await _notificationService.CreateNotificationAsync(
-            complaint.UserId,
-            "Complaint Status Update",
-            $"Your complaint '{complaint.Title}' is now '{dto.Status}' by {updatedBy}."
-        );
+        await notificationService.CreateNotificationAsync(
+            complaint.UserId, "Complaint Status Update", $"Your complaint '{complaint.Title}' is now '{dto.Status}' by {updatedBy}.");
 
         return true;
     }
 
     public async Task<bool> DeleteComplaintAsync(string id, string currentUserId, bool isAdmin)
     {
-        var complaint = await _context.Complaints.Find(c => c.Id == id).FirstOrDefaultAsync();
-        if (complaint == null) return false;
+        var complaint = await context.Complaints.Find(c => c.Id == id).FirstOrDefaultAsync();
+        if (complaint == null || (!isAdmin && complaint.UserId != currentUserId)) return false;
 
-        if (!isAdmin && complaint.UserId != currentUserId)
-        {
-            return false;
-        }
-
-        await _context.ComplaintHistory.DeleteManyAsync(h => h.ComplaintId == id);
-        var result = await _context.Complaints.DeleteOneAsync(c => c.Id == id);
-        return result.DeletedCount > 0;
+        await context.ComplaintHistory.DeleteManyAsync(h => h.ComplaintId == id);
+        return (await context.Complaints.DeleteOneAsync(c => c.Id == id)).DeletedCount > 0;
     }
 
-    public async Task<List<ComplaintHistoryDto>> GetComplaintHistoryAsync(string complaintId)
-    {
-        var history = await _context.ComplaintHistory.Find(h => h.ComplaintId == complaintId)
-            .SortByDescending(h => h.CreatedAt)
-            .ToListAsync();
-
-        return history.Select(h => new ComplaintHistoryDto
+    public async Task<List<ComplaintHistoryDto>> GetComplaintHistoryAsync(string complaintId) =>
+        (await context.ComplaintHistory.Find(h => h.ComplaintId == complaintId).SortByDescending(h => h.CreatedAt).ToListAsync())
+        .Select(h => new ComplaintHistoryDto
         {
-            Id = h.Id,
-            ComplaintId = h.ComplaintId,
-            UpdatedBy = h.UpdatedBy,
-            PreviousStatus = h.PreviousStatus,
-            NewStatus = h.NewStatus,
-            Remarks = h.Remarks,
-            CreatedAt = h.CreatedAt
+            Id = h.Id, ComplaintId = h.ComplaintId, UpdatedBy = h.UpdatedBy,
+            PreviousStatus = h.PreviousStatus, NewStatus = h.NewStatus, Remarks = h.Remarks, CreatedAt = h.CreatedAt
         }).ToList();
-    }
 
     private static ComplaintResponseDto MapComplaint(Complaint c) => new()
     {
-        Id = c.Id,
-        UserId = c.UserId,
-        UserName = c.UserName,
-        UserEmail = c.UserEmail,
-        DepartmentId = c.DepartmentId,
-        DepartmentName = c.DepartmentName,
-        Title = c.Title,
-        Category = c.Category,
-        Description = c.Description,
-        ImageUrl = c.ImageUrl,
-        Status = c.Status,
-        AssignedTo = c.AssignedTo,
-        ResolutionNotes = c.ResolutionNotes,
-        CreatedAt = c.CreatedAt,
-        UpdatedAt = c.UpdatedAt
+        Id = c.Id, UserId = c.UserId, UserName = c.UserName, UserEmail = c.UserEmail,
+        DepartmentId = c.DepartmentId ?? string.Empty, DepartmentName = c.DepartmentName, Title = c.Title,
+        Category = c.Category, Description = c.Description, ImageUrl = c.ImageUrl,
+        Status = c.Status, AssignedTo = c.AssignedTo, ResolutionNotes = c.ResolutionNotes,
+        CreatedAt = c.CreatedAt, UpdatedAt = c.UpdatedAt
     };
 }
-

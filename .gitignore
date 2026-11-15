@@ -3,6 +3,8 @@ bin/
 obj/
 [Bb]in/
 [Oo]bj/
+**/bin/
+**/obj/
 
 # Visual Studio / VS Code
 .vs/

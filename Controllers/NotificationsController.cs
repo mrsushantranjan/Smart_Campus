@@ -6,62 +6,30 @@ using SmartCampus.Services;
 namespace SmartCampus.Controllers;
 
 [Authorize]
-public class NotificationsController : Controller
+public class NotificationsController(INotificationService notificationService) : Controller
 {
-    private readonly INotificationService _notificationService;
-
-    public NotificationsController(INotificationService notificationService)
-    {
-        _notificationService = notificationService;
-    }
+    private string CurrentUserId => User.FindFirstValue(ClaimTypes.NameIdentifier)!;
 
     [HttpGet]
-    public async Task<IActionResult> Index()
-    {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-        var notifs = await _notificationService.GetUserNotificationsAsync(userId, unreadOnly: false, limit: 30);
-        return View(notifs);
-    }
+    public async Task<IActionResult> Index() =>
+        View(await notificationService.GetUserNotificationsAsync(CurrentUserId, unreadOnly: false, limit: 30));
 
     [HttpGet]
-    public async Task<IActionResult> GetUnread()
-    {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-        var count = await _notificationService.GetUnreadCountAsync(userId);
-        var notifs = await _notificationService.GetUserNotificationsAsync(userId, unreadOnly: false, limit: 5);
-        return Json(new { count, notifications = notifs });
-    }
+    public async Task<IActionResult> GetUnread() =>
+        Json(new { count = await notificationService.GetUnreadCountAsync(CurrentUserId), notifications = await notificationService.GetUserNotificationsAsync(CurrentUserId, unreadOnly: false, limit: 5) });
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
+    [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> MarkAsRead(string id, string? returnUrl = null)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-        await _notificationService.MarkAsReadAsync(id, userId);
-
-        if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
-        {
-            return Redirect(returnUrl);
-        }
-
-        return RedirectToAction(nameof(Index));
+        await notificationService.MarkAsReadAsync(id, CurrentUserId);
+        return !string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl) ? Redirect(returnUrl) : RedirectToAction(nameof(Index));
     }
 
-    [HttpPost]
-    [ValidateAntiForgeryToken]
+    [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> MarkAllAsRead(string? returnUrl = null)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)!;
-        await _notificationService.MarkAllAsReadAsync(userId);
-
+        await notificationService.MarkAllAsReadAsync(CurrentUserId);
         TempData["SuccessMessage"] = "All notifications marked as read.";
-
-        if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
-        {
-            return Redirect(returnUrl);
-        }
-
-        return RedirectToAction(nameof(Index));
+        return !string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl) ? Redirect(returnUrl) : RedirectToAction(nameof(Index));
     }
 }
-

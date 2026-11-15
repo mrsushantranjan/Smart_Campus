@@ -7,102 +7,53 @@ using SmartCampus.Services;
 namespace SmartCampus.Controllers;
 
 [Authorize]
-public class AnnouncementsController : Controller
+public class AnnouncementsController(IAnnouncementService announcementService) : Controller
 {
-    private readonly IAnnouncementService _announcementService;
-
-    public AnnouncementsController(IAnnouncementService announcementService)
-    {
-        _announcementService = announcementService;
-    }
-
     [HttpGet]
     public async Task<IActionResult> Index(string? search)
     {
-        var isAdmin = User.IsInRole(UserRoles.Admin);
         ViewBag.Search = search;
-
-        // Admin can see both active and inactive; Students/Faculty only see active
-        var list = await _announcementService.GetAnnouncementsAsync(activeOnly: !isAdmin, search: search);
-        return View(list);
+        return View(await announcementService.GetAnnouncementsAsync(activeOnly: !User.IsInRole(UserRoles.Admin), search: search));
     }
 
     [HttpGet]
-    public async Task<IActionResult> Details(string id)
-    {
-        var announcement = await _announcementService.GetAnnouncementByIdAsync(id);
-        if (announcement == null) return NotFound();
+    public async Task<IActionResult> Details(string id) =>
+        await announcementService.GetAnnouncementByIdAsync(id) is { } item ? View(item) : NotFound();
 
-        return View(announcement);
-    }
+    [HttpGet, Authorize(Roles = UserRoles.Admin)]
+    public IActionResult Create() => View(new CreateAnnouncementDto());
 
-    [HttpGet]
-    [Authorize(Roles = UserRoles.Admin)]
-    public IActionResult Create()
-    {
-        return View(new CreateAnnouncementDto());
-    }
-
-    [HttpPost]
-    [Authorize(Roles = UserRoles.Admin)]
-    [ValidateAntiForgeryToken]
+    [HttpPost, Authorize(Roles = UserRoles.Admin), ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(CreateAnnouncementDto dto)
     {
         if (!ModelState.IsValid) return View(dto);
-
-        var publisher = User.Identity?.Name ?? "Administration";
-        await _announcementService.CreateAnnouncementAsync(publisher, dto);
-
+        await announcementService.CreateAnnouncementAsync(User.Identity?.Name ?? "Administration", dto);
         TempData["SuccessMessage"] = "Announcement published successfully and notified campus users.";
         return RedirectToAction(nameof(Index));
     }
 
-    [HttpGet]
-    [Authorize(Roles = UserRoles.Admin)]
+    [HttpGet, Authorize(Roles = UserRoles.Admin)]
     public async Task<IActionResult> Edit(string id)
     {
-        var announcement = await _announcementService.GetAnnouncementByIdAsync(id);
-        if (announcement == null) return NotFound();
-
-        var model = new UpdateAnnouncementDto
-        {
-            Title = announcement.Title,
-            Description = announcement.Description,
-            Category = announcement.Category,
-            IsActive = announcement.IsActive
-        };
+        if (await announcementService.GetAnnouncementByIdAsync(id) is not { } a) return NotFound();
         ViewBag.AnnouncementId = id;
-        return View(model);
+        return View(new UpdateAnnouncementDto { Title = a.Title, Description = a.Description, Category = a.Category, IsActive = a.IsActive });
     }
 
-    [HttpPost]
-    [Authorize(Roles = UserRoles.Admin)]
-    [ValidateAntiForgeryToken]
+    [HttpPost, Authorize(Roles = UserRoles.Admin), ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(string id, UpdateAnnouncementDto dto)
     {
-        if (!ModelState.IsValid)
-        {
-            ViewBag.AnnouncementId = id;
-            return View(dto);
-        }
-
-        var success = await _announcementService.UpdateAnnouncementAsync(id, dto);
-        TempData[success ? "SuccessMessage" : "ErrorMessage"] =
-            success ? "Announcement updated successfully." : "Failed to update announcement.";
-
+        if (!ModelState.IsValid) { ViewBag.AnnouncementId = id; return View(dto); }
+        var ok = await announcementService.UpdateAnnouncementAsync(id, dto);
+        TempData[ok ? "SuccessMessage" : "ErrorMessage"] = ok ? "Announcement updated successfully." : "Failed to update announcement.";
         return RedirectToAction(nameof(Index));
     }
 
-    [HttpPost]
-    [Authorize(Roles = UserRoles.Admin)]
-    [ValidateAntiForgeryToken]
+    [HttpPost, Authorize(Roles = UserRoles.Admin), ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(string id)
     {
-        var success = await _announcementService.DeleteAnnouncementAsync(id);
-        TempData[success ? "SuccessMessage" : "ErrorMessage"] =
-            success ? "Announcement deleted successfully." : "Failed to delete announcement.";
-
+        var ok = await announcementService.DeleteAnnouncementAsync(id);
+        TempData[ok ? "SuccessMessage" : "ErrorMessage"] = ok ? "Announcement deleted successfully." : "Failed to delete announcement.";
         return RedirectToAction(nameof(Index));
     }
 }
-
