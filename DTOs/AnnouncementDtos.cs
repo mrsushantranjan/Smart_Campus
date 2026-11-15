@@ -6,18 +6,13 @@ public class CreateAnnouncementDto
 {
     [Required, StringLength(140, MinimumLength = 5)]
     public string Title { get; set; } = string.Empty;
-
     [Required, StringLength(3000, MinimumLength = 10)]
     public string Description { get; set; } = string.Empty;
-
     public string Category { get; set; } = "General";
-
     public bool IsActive { get; set; } = true;
 }
 
-public class UpdateAnnouncementDto : CreateAnnouncementDto
-{
-}
+public class UpdateAnnouncementDto : CreateAnnouncementDto { }
 
 public class AnnouncementResponseDto
 {
@@ -39,4 +34,3 @@ public class NotificationResponseDto
     public bool IsRead { get; set; }
     public DateTime CreatedAt { get; set; }
 }
-

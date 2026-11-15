@@ -13,8 +13,8 @@ public class AdminDashboardDto
     public long TotalBooks { get; set; }
     public long ActiveReservations { get; set; }
     public long TotalServiceRequests { get; set; }
-    public List<ComplaintResponseDto> RecentComplaints { get; set; } = new();
-    public List<ServiceRequestResponseDto> RecentRequests { get; set; } = new();
+    public List<ComplaintResponseDto> RecentComplaints { get; set; } = [];
+    public List<ServiceRequestResponseDto> RecentRequests { get; set; } = [];
 }
 
 public class StudentDashboardDto
@@ -24,10 +24,10 @@ public class StudentDashboardDto
     public long PendingComplaints { get; set; }
     public long ResolvedComplaints { get; set; }
     public long ActiveServiceRequests { get; set; }
-    public List<ComplaintResponseDto> RecentComplaints { get; set; } = new();
-    public List<ReservationResponseDto> MyReservations { get; set; } = new();
-    public List<AnnouncementResponseDto> LatestAnnouncements { get; set; } = new();
-    public List<NotificationResponseDto> Notifications { get; set; } = new();
+    public List<ComplaintResponseDto> RecentComplaints { get; set; } = [];
+    public List<ReservationResponseDto> MyReservations { get; set; } = [];
+    public List<AnnouncementResponseDto> LatestAnnouncements { get; set; } = [];
+    public List<NotificationResponseDto> Notifications { get; set; } = [];
 }
 
 public class FacultyDashboardDto
@@ -35,9 +35,9 @@ public class FacultyDashboardDto
     public ApplicationUser User { get; set; } = null!;
     public long AssignedComplaintsCount { get; set; }
     public long TotalServiceRequests { get; set; }
-    public List<ComplaintResponseDto> AssignedComplaints { get; set; } = new();
-    public List<ServiceRequestResponseDto> MyRequests { get; set; } = new();
-    public List<AnnouncementResponseDto> LatestAnnouncements { get; set; } = new();
+    public List<ComplaintResponseDto> AssignedComplaints { get; set; } = [];
+    public List<ServiceRequestResponseDto> MyRequests { get; set; } = [];
+    public List<AnnouncementResponseDto> LatestAnnouncements { get; set; } = [];
 }
 
 public class DepartmentStatItem
@@ -60,13 +60,12 @@ public class MonthlyStatItem
 
 public class ReportsViewModel
 {
-    public List<DepartmentStatItem> DepartmentComplaints { get; set; } = new();
-    public List<StatusStatItem> ComplaintStatuses { get; set; } = new();
-    public List<MonthlyStatItem> MonthlyComplaints { get; set; } = new();
-    public List<StatusStatItem> ServiceRequestStatuses { get; set; } = new();
-    public List<StatusStatItem> ReservationStatuses { get; set; } = new();
+    public List<DepartmentStatItem> DepartmentComplaints { get; set; } = [];
+    public List<StatusStatItem> ComplaintStatuses { get; set; } = [];
+    public List<MonthlyStatItem> MonthlyComplaints { get; set; } = [];
+    public List<StatusStatItem> ServiceRequestStatuses { get; set; } = [];
+    public List<StatusStatItem> ReservationStatuses { get; set; } = [];
     public long TotalComplaints { get; set; }
     public long TotalRequests { get; set; }
     public long TotalReservations { get; set; }
 }
-

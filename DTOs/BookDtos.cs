@@ -6,19 +6,14 @@ public class CreateBookDto
 {
     [Required, StringLength(150, MinimumLength = 2)]
     public string Title { get; set; } = string.Empty;
-
     [Required, StringLength(100)]
     public string Author { get; set; } = string.Empty;
-
     [Required, StringLength(50)]
     public string ISBN { get; set; } = string.Empty;
-
     [Required, StringLength(60)]
     public string Category { get; set; } = string.Empty;
-
     [StringLength(1000)]
     public string Description { get; set; } = string.Empty;
-
     [Range(1, 1000)]
     public int TotalCopies { get; set; } = 1;
 }

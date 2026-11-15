@@ -6,16 +6,12 @@ public class CreateComplaintDto
 {
     [Required, StringLength(140, MinimumLength = 5)]
     public string Title { get; set; } = string.Empty;
-
     [Required]
     public string Category { get; set; } = "General";
-
     [Required]
     public string DepartmentId { get; set; } = string.Empty;
-
     [Required, StringLength(3000, MinimumLength = 10)]
     public string Description { get; set; } = string.Empty;
-
     public string? ImageUrl { get; set; }
 }
 
@@ -23,20 +19,14 @@ public class UpdateComplaintDto
 {
     [Required, StringLength(140, MinimumLength = 5)]
     public string Title { get; set; } = string.Empty;
-
     [Required]
     public string Category { get; set; } = string.Empty;
-
     [Required]
     public string DepartmentId { get; set; } = string.Empty;
-
     [Required, StringLength(3000, MinimumLength = 10)]
     public string Description { get; set; } = string.Empty;
-
     public string? Status { get; set; }
-
     public string? AssignedTo { get; set; }
-
     public string? ResolutionNotes { get; set; }
 }
 
@@ -44,11 +34,8 @@ public class UpdateComplaintStatusDto
 {
     [Required]
     public string Status { get; set; } = string.Empty;
-
     public string? AssignedTo { get; set; }
-
     public string? Remarks { get; set; }
-
     public string? ResolutionNotes { get; set; }
 }
 
@@ -80,6 +67,5 @@ public class ComplaintResponseDto
     public string? ResolutionNotes { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
-    public List<ComplaintHistoryDto> History { get; set; } = new();
+    public List<ComplaintHistoryDto> History { get; set; } = [];
 }
-
